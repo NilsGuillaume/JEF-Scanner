@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR Ticket Check‑In (CSV‑backed)</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#111827; --muted:#94a3b8; --ok:#10b981; --err:#ef4444; --fg:#e5e7eb; --btn:#2563eb; --btnText:#ffffff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background: radial-gradient(1200px 800px at 50% -10%, #1f2937 0%, var(--bg) 60%); color:var(--fg); display:flex; align-items:center; justify-content:center; padding:18px; transition:background-color .25s ease; }
+    body.ok{ background: radial-gradient(1200px 800px at 50% -10%, #064e3b 0%, #052e27 60%);} /* green */
+    body.error{ background: radial-gradient(1200px 800px at 50% -10%, #7f1d1d 0%, #450a0a 60%);}  /* red */
+    .app{ width:min(1000px, 100%);} .card{ background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,.4); overflow:hidden; }
+    header{ display:flex; gap:14px; align-items:center; justify-content:space-between; padding:18px 18px 0; flex-wrap:wrap;}
+    .title{ font-size:clamp(20px, 3vw, 28px); font-weight:700; letter-spacing:.2px;}
+    .status{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:#0b1220; border:1px solid rgba(255,255,255,.08); color:var(--muted); }
+    .dot{ width:10px; height:10px; border-radius:999px; background:var(--muted); box-shadow:0 0 0 3px rgba(255,255,255,.04) inset; }
+    .status.ok{ color:var(--ok); border-color:rgba(16,185,129,.35);} .status.ok .dot{ background:var(--ok);} .status.err{ color:var(--err); border-color:rgba(239,68,68,.35);} .status.err .dot{ background:var(--err);} 
+    .body{ display:grid; grid-template-columns:1.1fr .9fr; gap:16px; padding:18px; } @media (max-width:900px){ .body{ grid-template-columns:1fr; }}
+    .panel{ background:#0b1220; border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px; }
+    .panel h2{ margin:0 0 12px; font-size:16px; color:#cbd5e1; font-weight:600; letter-spacing:.2px; }
+    video{ width:100%; aspect-ratio:3/4; background:#000; border-radius:12px; display:block; }
+    canvas{ display:none; }
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    button{ appearance:none; border:0; border-radius:12px; padding:12px 16px; font-weight:700; letter-spacing:.2px; cursor:pointer; transition:transform .06s ease, opacity .2s ease, box-shadow .2s ease; }
+    button:active{ transform:translateY(1px); }
+    .primary{ background:var(--btn); color:var(--btnText); box-shadow:0 6px 18px rgba(37,99,235,.35); }
+    .secondary{ background:#0f172a; color:#e2e8f0; border:1px solid rgba(255,255,255,.08); }
+    .ghost{ background:transparent; color:#cbd5e1; border:1px dashed rgba(255,255,255,.2); }
+    button[disabled]{ opacity:.5; cursor:not-allowed; box-shadow:none; }
+    .field{ display:grid; gap:6px; margin:10px 0 0; }
+    label{ font-size:12px; color:#9aa4b2; }
+    input, .file{ width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,.08); background:#0b1220; color:#e5e7eb; }
+    .file{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .log{ font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:13px; background:#020617; color:#cbd5e1; border-radius:12px; padding:12px; height:180px; overflow:auto; white-space:pre-wrap; border:1px solid rgba(255,255,255,.06); }
+    .checkin-banner{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.06); margin-top:12px; }
+    .checkin-banner.ok{ background:rgba(16,185,129,.12); } .checkin-banner.err{ background:rgba(239,68,68,.12); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <header>
+        <div class="title">🎟️ QR Ticket Check‑In (CSV)</div>
+        <div id="statusPill" class="status" aria-live="polite"><span class="dot"></span><span id="statusText">Upload ticket_ids.csv to begin</span></div>
+      </header>
+
+      <div class="body">
+        <!-- Scanner panel -->
+        <section class="panel">
+          <h2>Scanner</h2>
+          <video id="preview" playsinline muted></video>
+          <canvas id="frame"></canvas>
+          <div class="controls">
+            <button id="btnStart" class="primary" disabled>📷 Start Scan</button>
+            <button id="btnStop" class="secondary" disabled>⏹ Stop</button>
+            <button id="btnFlip" class="ghost" title="Switch camera" disabled>🔄 Flip Camera</button>
+          </div>
+          <div class="field">
+            <label for="qrText">Last scanned value</label>
+            <input id="qrText" placeholder="—" readonly />
+          </div>
+          <div id="banner" class="checkin-banner" hidden>
+            <div id="bannerMsg">—</div>
+          </div>
+        </section>
+
+        <!-- CSV + log panel -->
+        <section class="panel">
+          <h2>CSV & Controls</h2>
+          <div class="field">
+            <label>ticket_ids.csv (must include columns: <b>ids</b>, <b>status</b>)</label>
+            <div class="file">
+              <input type="file" id="csvFile" accept=".csv" />
+              <button id="btnDownload" class="ghost" disabled>⬇️ Download updated CSV</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="manual">Manual entry (fallback)</label>
+            <input id="manual" placeholder="Paste or type a QR value here..." />
+          </div>
+          <div class="controls">
+            <button id="btnValidate" class="secondary" disabled>Validate</button>
+            <button id="btnReset" class="ghost">Reset</button>
+          </div>
+          <div class="field">
+            <label>Activity</label>
+            <div id="log" class="log" aria-live="polite"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@zxing/browser@latest"></script>
+  <script>
+  (function(){
+    const els = {
+      body: document.body,
+      statusPill: document.getElementById('statusPill'),
+      statusText: document.getElementById('statusText'),
+      video: document.getElementById('preview'),
+      canvas: document.getElementById('frame'),
+      start: document.getElementById('btnStart'),
+      stop: document.getElementById('btnStop'),
+      flip: document.getElementById('btnFlip'),
+      qrText: document.getElementById('qrText'),
+      banner: document.getElementById('banner'),
+      bannerMsg: document.getElementById('bannerMsg'),
+      manual: document.getElementById('manual'),
+      validate: document.getElementById('btnValidate'),
+      reset: document.getElementById('btnReset'),
+      log: document.getElementById('log'),
+      csvFile: document.getElementById('csvFile'),
+      btnDownload: document.getElementById('btnDownload'),
+    };
+
+    // In-memory CSV data
+    let csvHeaders = [];          // e.g., ['ids','status', ...]
+    let csvRows = [];             // array of arrays (excluding header)
+    let idCol = -1, statusCol = -1;  
+    const map = new Map();        // id -> rowIndex
+
+    // Scanner state
+    let currentDeviceId = null, usingZXing = null, stream = null, scanning = false;
+    const barcodeDetector = 'BarcodeDetector' in window ? new BarcodeDetector({ formats: ['qr_code'] }) : null;
+
+    // Utilities
+    function setStatus(text, type = 'idle'){
+      els.statusText.textContent = text;
+      els.statusPill.classList.remove('ok','err');
+      els.body.classList.remove('ok','error');
+      if(type === 'ok'){ els.statusPill.classList.add('ok'); els.body.classList.add('ok'); }
+      else if(type === 'err'){ els.statusPill.classList.add('err'); els.body.classList.add('error'); }
+    }
+    function log(msg){ const t = new Date().toLocaleTimeString(); els.log.textContent = `[${t}] ${msg}\n` + els.log.textContent; }
+    function showBanner(msg, ok){ els.banner.hidden = false; els.banner.classList.toggle('ok', !!ok); els.banner.classList.toggle('err', !ok); els.bannerMsg.textContent = msg; }
+
+    // Minimal CSV parser supporting quoted fields and commas
+    function parseCSV(text){
+      const rows = []; let row = []; let cur = '';
+      let i=0, inQuotes=false;
+      while(i < text.length){
+        const ch = text[i];
+        if(inQuotes){
+          if(ch === '"'){
+            if(text[i+1] === '"'){ cur += '"'; i++; } else { inQuotes = false; }
+          } else { cur += ch; }
+        } else {
+          if(ch === '"'){ inQuotes = true; }
+          else if(ch === ','){ row.push(cur); cur=''; }
+          else if(ch === '\n' || ch === '\r'){ if(cur!=='' || row.length){ row.push(cur); rows.push(row); row=[]; cur=''; }
+            // handle \r\n by skipping the next \n
+            if(ch==='\r' && text[i+1]==='\n') i++; }
+          else { cur += ch; }
+        }
+        i++;
+      }
+      if(cur!=='' || row.length){ row.push(cur); rows.push(row); }
+      return rows.filter(r=>r.length && !(r.length===1 && r[0]===''));
+    }
+
+    function toCSV(headers, rows){
+      const esc = v => (v==null?'':String(v)).replace(/"/g,'""');
+      const line = arr => arr.map(v=>`"${esc(v)}"`).join(',');
+      return [line(headers), ...rows.map(line)].join('\n');
+    }
+
+    function loadCSV(text){
+      const table = parseCSV(text);
+      if(!table.length) throw new Error('Empty CSV');
+      csvHeaders = table[0].map(h=>String(h).trim());
+      idCol = csvHeaders.findIndex(h=>h.toLowerCase()==='ids');
+      statusCol = csvHeaders.findIndex(h=>h.toLowerCase()==='status');
+      if(idCol===-1 || statusCol===-1) throw new Error('Missing required columns: ids, status');
+      csvRows = table.slice(1);
+      map.clear();
+      csvRows.forEach((row, idx)=>{ map.set(String(row[idCol]).trim(), idx); });
+      els.start.disabled = false; els.validate.disabled = false; els.btnDownload.disabled = false;
+      setStatus('CSV loaded. Ready to scan.');
+      log(`Loaded ${csvRows.length} tickets. Columns: ${csvHeaders.join(', ')}`);
+    }
+
+    function updateStatusForId(id){
+      const idx = map.get(id.trim());
+      if(idx === undefined){ setStatus('Invalid QR code', 'err'); showBanner('⛔ Fake/unknown code', false); log(`Code NOT FOUND: ${id}`); return 'not_found'; }
+      const current = String(csvRows[idx][statusCol]||'').trim().toLowerCase();
+      if(current === 'checked-in' || current === 'checkedin' || current === 'checked_in'){
+        setStatus('Already checked in', 'err'); showBanner('⚠️ Code already checked in', false); log(`ALREADY CHECKED IN: ${id}`); return 'already';
+      }
+      // Mark as checked in
+      csvRows[idx][statusCol] = 'Checked-In';
+      setStatus('Checked in', 'ok'); showBanner('🎉 Checked in', true); log(`Checked in: ${id}`);
+      return 'ok';
+    }
+
+    // Scanner flow
+    async function startScan(){
+      if(scanning) return;
+      els.start.disabled = true; els.stop.disabled = false; els.flip.disabled = true;
+      setStatus('Starting camera…');
+      try{
+        const constraints = { video: { facingMode: 'environment' }, audio:false };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        els.video.srcObject = stream; await els.video.play(); scanning = true; els.flip.disabled = false; setStatus('Scanning…');
+        // prefer native, but verify it can actually detect by sampling 1 frame; otherwise fallback to ZXing
+        if(barcodeDetector){
+          const ok = await testNativeDetector();
+          if(ok){ scanWithNativeFrames(); } else { log('Native detector present but returned no capability. Falling back to ZXing.'); scanWithZXingOnElement(); }
+        } else { scanWithZXingOnElement(); }
+      } catch(err){ setStatus('Camera access failed', 'err'); log('Camera error: ' + err.message); els.start.disabled = false; els.stop.disabled = true; els.flip.disabled = true; }
+    }
+
+    async function stopScan(){
+      scanning = false;
+      if(usingZXing){ try{ await usingZXing.stopStreams(); await usingZXing.reset(); }catch(e){} usingZXing=null; }
+      if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+      els.video.srcObject=null; els.stop.disabled=true; els.flip.disabled=true; els.start.disabled=false; setStatus(map.size? 'CSV loaded. Ready to scan.' : 'Idle');
+    }
+
+    async function flipCamera(){
+      try{ const devices = await navigator.mediaDevices.enumerateDevices(); const cams = devices.filter(d=>d.kind==='videoinput'); if(cams.length<2){ log('No secondary camera.'); return; }
+        const idx = cams.findIndex(c=>c.deviceId===currentDeviceId); const next = cams[(idx+1)%cams.length]; currentDeviceId = next.deviceId; await stopScan(); const constraints = { video: { deviceId: { exact: currentDeviceId } } }; stream = await navigator.mediaDevices.getUserMedia(constraints); els.video.srcObject=stream; await els.video.play(); scanning=true; setStatus('Scanning…'); if(barcodeDetector){ const ok = await testNativeDetector(); if(ok){ scanWithNativeFrames(); } else { scanWithZXingOnElement(); } } else { scanWithZXingOnElement(); } }
+      catch(err){ log('Flip error: '+err.message);} }
+
+    // --- Native BarcodeDetector using video frames via canvas/ImageBitmap (more compatible)
+    async function testNativeDetector(){
+      try{
+        // Some browsers expose BarcodeDetector but return 0 formats
+        const formats = await BarcodeDetector.getSupportedFormats?.();
+        if(Array.isArray(formats) && !formats.includes('qr_code')) return false;
+        // quick sample frame to ensure detect() doesn't throw
+        const bmp = await createFrameBitmap();
+        if(!bmp) return false;
+        await barcodeDetector.detect(bmp); // ignore result; just test
+        bmp.close?.();
+        return true;
+      } catch{ return false; }
+    }
+
+    async function createFrameBitmap(){
+      try{ if('createImageBitmap' in window){ return await createImageBitmap(els.video); } }catch(e){ /* fallthrough */ }
+      // fallback: draw to canvas
+      const w = els.video.videoWidth, h = els.video.videoHeight; if(!w||!h) return null;
+      const c = els.canvas; c.width=w; c.height=h; const ctx=c.getContext('2d'); ctx.drawImage(els.video,0,0,w,h); return await createImageBitmap(c);
+    }
+
+    async function scanWithNativeFrames(){
+      if(!scanning) return;
+      try{
+        const bmp = await createFrameBitmap();
+        if(bmp){
+          const dets = await barcodeDetector.detect(bmp);
+          bmp.close?.();
+          if(dets && dets.length){ const value = dets[0].rawValue; els.qrText.value = value; updateStatusForId(value); await stopScan(); return; }
+        }
+      } catch(err){ log('Native detect error: ' + err.message); }
+      requestAnimationFrame(scanWithNativeFrames);
+    }
+
+    // --- ZXing fallback that decodes FROM THE EXISTING <video> stream (more reliable on iOS/Safari)
+    async function scanWithZXingOnElement(){
+      try{
+        usingZXing = new ZXing.BrowserMultiFormatReader();
+        const hints = new Map();
+        if(ZXing?.DecodeHintType && ZXing?.BarcodeFormat){ hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.QR_CODE]); }
+        usingZXing.setHints?.(hints);
+        await usingZXing.decodeFromVideoElement(els.video, (result, err)=>{
+          if(!scanning) return;
+          if(result){ const value = result.getText(); els.qrText.value = value; updateStatusForId(value); stopScan(); }
+          if(err && !(err instanceof ZXing.NotFoundException)){ log('ZXing error: ' + (err.message||err)); }
+        });
+      } catch(err){ log('ZXing init error: ' + err.message); }
+    }
+
+    // Capability checks
+    if(!('mediaDevices' in navigator)){ setStatus('Camera not supported', 'err'); log('This browser does not support camera access.'); els.start.disabled = true; }
+  })();
+  </script>
+</body>
+</html>
