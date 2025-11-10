@@ -39,19 +39,9 @@
     .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#000a; z-index:9999; font-size:20px }
     .overlay.show{ display:flex }
     .ticket{ display:none; background:var(--card); border:2px solid var(--accent); border-radius:16px; padding:24px; margin-top:24px; text-align:center; }
-    .ticket.show{ display:block; animation: fadeIn 0.5s ease-in; }
+    .ticket.show{ display:block; }
     .ticket h2{ color:var(--accent); margin-top:0; }
-    .ticket-code{ font-family:monospace; font-size:24px; letter-spacing:4px; background:var(--bg); padding:12px; border-radius:8px; margin:16px 0; border:1px dashed var(--accent); }
-    .success-badge{ background:#10b981; color:white; padding:8px 16px; border-radius:20px; font-weight:600; margin-bottom:16px; display:inline-block; }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Test Button Styles */
-    .test-mode{ background:#f59e0b; color:white; padding:12px 20px; border:none; border-radius:8px; font-weight:600; cursor:pointer; margin-top:10px; }
-    .test-mode:hover{ background:#d97706; }
+    .ticket-code{ font-family:monospace; font-size:24px; letter-spacing:4px; background:var(--bg); padding:12px; border-radius:8px; margin:16px 0; }
   </style>
 </head>
 
@@ -95,9 +85,6 @@
         <!-- PayPal Button Container -->
         <div id="paypal-container-SP2E3J2QVPCUJ"></div>
 
-        <!-- Test Button für lokales Testing -->
-        <button class="test-mode" onclick="simulatePayment()">🎭 Test-Modus: Zahlung simulieren</button>
-
         <div class="divider"></div>
         <small class="muted">
           Mit dem Fortfahren stimmst du unseren <a href="#" rel="nofollow">AGB</a> und der <a href="#" rel="nofollow">Rückerstattungsrichtlinie</a> zu.
@@ -107,19 +94,14 @@
 
     <!-- Ticket Anzeige (wird nach Zahlung angezeigt) -->
     <section class="ticket" id="ticket">
-      <div class="success-badge">✅ Zahlung erfolgreich!</div>
       <h2>🎉 Dein Ticket für die Spring Gala</h2>
       <p><strong>Spring Gala – General Admission</strong></p>
       <p>Samstag, 3. Mai 2026 · 19:30<br/>Kulturforum, Matthäikirchplatz, Berlin</p>
       
-      <div class="ticket-code" id="ticketCode">Lade Ticket...</div>
+      <div class="ticket-code" id="ticketCode">SG-XXXX-XXXX-XXXX</div>
       
-      <p><strong>Name:</strong> <span id="ticketName">Max Mustermann</span></p>
-      <p class="muted">Dieses Ticket wird am Einlass gescannt. Bitte zeige es vor oder drucke es aus.</p>
-      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">📄 Ticket drucken</button>
-        <button onclick="saveTicket()" style="background:#10b981; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">💾 Ticket speichern</button>
-      </div>
+      <p class="muted">Dieses Ticket wird am Einlass gescannt. Bitte zeige es vor.</p>
+      <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Ticket drucken</button>
     </section>
   </main>
 
@@ -127,7 +109,7 @@
   <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket wird erstellt …</div>
 
   <script>
-    // Ticket-Generierung
+    // Einfache Lösung ohne Backend
     function generateTicketCode() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
       let result = 'SG-';
@@ -143,20 +125,13 @@
       const ticketCode = document.getElementById('ticketCode');
       const overlay = document.getElementById('overlay');
       
-      console.log('Zeige Ticket an...');
-      
       // Overlay anzeigen
       overlay.classList.add('show');
       
       // Kurze Verzögerung für realistischen Effekt
       setTimeout(() => {
         // Ticket Code generieren
-        const newTicketCode = generateTicketCode();
-        ticketCode.textContent = newTicketCode;
-        
-        // Timestamp für Kaufdatum
-        const now = new Date();
-        document.getElementById('ticketName').textContent = `Kunde (${now.toLocaleDateString('de-DE')})`;
+        ticketCode.textContent = generateTicketCode();
         
         // Overlay ausblenden und Ticket anzeigen
         overlay.classList.remove('show');
@@ -164,66 +139,27 @@
         
         // Zum Ticket scrollen
         ticket.scrollIntoView({ behavior: 'smooth' });
+      }, 2000);
+    }
+
+    // PayPal Integration ohne Backend
+    paypal.HostedButtons({
+      hostedButtonId: "SP2E3J2QVPCUJ",
+      onApprove: function (data, actions) {
+        // Zeige das Ticket direkt nach erfolgreicher Zahlung an
+        showTicket();
         
-        // Erfolg in Konsole loggen
-        console.log('Ticket erfolgreich erstellt:', newTicketCode);
-      }, 1500);
-    }
-
-    // Test-Funktion für lokales Testing
-    function simulatePayment() {
-      console.log('Simuliere PayPal-Zahlung...');
-      showTicket();
-    }
-
-    // Ticket speichern Funktion
-    function saveTicket() {
-      const ticketCode = document.getElementById('ticketCode').textContent;
-      const ticketData = {
-        event: "Spring Gala – General Admission",
-        date: "Samstag, 3. Mai 2026 · 19:30",
-        location: "Kulturforum, Matthäikirchplatz, Berlin",
-        code: ticketCode,
-        purchased: new Date().toLocaleString('de-DE')
-      };
-      
-      localStorage.setItem('springGalaTicket', JSON.stringify(ticketData));
-      alert('✅ Ticket wurde lokal gespeichert!');
-    }
-
-    // Beim Laden prüfen ob bereits ein Ticket existiert
-    window.addEventListener('load', function() {
-      const savedTicket = localStorage.getItem('springGalaTicket');
-      if (savedTicket) {
-        const ticketData = JSON.parse(savedTicket);
-        document.getElementById('ticketCode').textContent = ticketData.code;
-        document.getElementById('ticketName').textContent = `Kunde (${new Date(ticketData.purchased).toLocaleDateString('de-DE')})`;
-        document.getElementById('ticket').classList.add('show');
-        console.log('Gespeichertes Ticket geladen:', ticketData.code);
+        // Optional: Erfolgsmeldung in Konsole
+        console.log('Zahlung erfolgreich! Order ID:', data.orderID);
+      },
+      onError: function (err) {
+        console.error('PayPal Fehler:', err);
+        alert('Es gab ein Problem mit der Zahlung. Bitte versuche es erneut.');
+      },
+      onCancel: function (data) {
+        console.log('Zahlung abgebrochen');
       }
-    });
-
-    // PayPal Integration - Vereinfachte Version
-    try {
-      paypal.HostedButtons({
-        hostedButtonId: "SP2E3J2QVPCUJ",
-        onApprove: function (data, actions) {
-          console.log('PayPal Zahlung erfolgreich:', data);
-          showTicket();
-        },
-        onError: function (err) {
-          console.error('PayPal Fehler:', err);
-          alert('Es gab ein Problem mit der Zahlung. Bitte versuche es erneut.');
-        },
-        onCancel: function (data) {
-          console.log('Zahlung abgebrochen vom Benutzer');
-        }
-      }).render("#paypal-container-SP2E3J2QVPCUJ");
-      
-      console.log('PayPal Button wurde geladen');
-    } catch (error) {
-      console.error('Fehler beim Laden des PayPal Buttons:', error);
-    }
+    }).render("#paypal-container-SP2E3J2QVPCUJ");
   </script>
 </body>
 </html>
