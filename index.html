@@ -1,238 +1,475 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <title>Tickets kaufen – Spring Gala</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light dark" />
-
-  <!-- PayPal SDK mit Hosted Buttons -->
-  <script 
-    src="https://www.paypal.com/sdk/js?client-id=BAA6Z2kU6-TesiMjcbBozmJQ2pDPYMmF4VODKR07Gn0n-tQjK8XFlfo_ENTXTOIhGLHluhWN4Br2Z0_ukQ&components=hosted-buttons&disable-funding=venmo&currency=EUR">
-  </script>
-
-  <style>
-    :root{
-      --bg:#0b0f14; --card:#111827; --muted:#9aa4b2; --text:#e6edf3; --line:#1f2937;
-      --accent:#60a5fa;
-    }
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#f7fafc; --card:#ffffff; --text:#0b1220; --line:#e5e7eb; --muted:#4b5563; --accent:#2563eb; }
-    }
-    *{ box-sizing:border-box }
-    html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial }
-    a{ color:var(--accent); text-decoration:none }
-    header{ border-bottom:1px solid var(--line); position:sticky; top:0; backdrop-filter:blur(6px); background:color-mix(in oklab, var(--bg) 85%, transparent) }
-    .wrap{ max-width:980px; margin:0 auto; padding:20px }
-    .brand{ font-weight:700; letter-spacing:.2px }
-    .grid{ display:grid; grid-template-columns:1.1fr .9fr; gap:24px; margin-top:24px }
-    @media (max-width: 900px){ .grid{ grid-template-columns:1fr } }
-    .card{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px }
-    .meta{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px }
-    @media (max-width:700px){ .meta{ grid-template-columns:1fr } }
-    .item{ background:color-mix(in oklab, var(--card) 90%, var(--bg)); border:1px dashed var(--line); padding:12px 14px; border-radius:12px }
-    .badge{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-weight:600; font-size:12px; border:1px solid #10b98155; color:#10b981; background:#10b9811a }
-    .price{ font-size:clamp(24px, 3vw, 32px); font-weight:800 }
-    .muted{ color:var(--muted) }
-    .divider{ height:1px; background:var(--line); margin:16px 0 }
-    .panel{ display:flex; flex-direction:column; gap:14px }
-    .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#000a; z-index:9999; font-size:20px }
-    .overlay.show{ display:flex }
-    .ticket{ display:none; background:var(--card); border:2px solid var(--accent); border-radius:16px; padding:24px; margin-top:24px; text-align:center; }
-    .ticket.show{ display:block; animation: fadeIn 0.5s ease-in; }
-    .ticket h2{ color:var(--accent); margin-top:0; }
-    .ticket-code{ font-family:monospace; font-size:24px; letter-spacing:4px; background:var(--bg); padding:12px; border-radius:8px; margin:16px 0; border:1px dashed var(--accent); }
-    .success-badge{ background:#10b981; color:white; padding:8px 16px; border-radius:20px; font-weight:600; margin-bottom:16px; display:inline-block; }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</head>
-
-<body>
-  <header>
-    <div class="wrap" aria-label="Site header">
-      <div class="brand">🎟️ EventBox</div>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <section class="hero" aria-labelledby="title">
-      <h1 id="title">Spring Gala – General Admission</h1>
-      <p>Samstag, 3. Mai 2026 · 19:30 — Kulturforum, Berlin</p>
-    </section>
-
-    <section class="grid" aria-label="Ticket checkout">
-      <!-- Eventinfo -->
-      <article class="card">
-        <div class="badge" aria-label="ticket status">Verfügbar · Begrenzte Plätze</div>
-        <div class="meta">
-          <div class="item">
-            <div class="muted">Einlass</div>
-            <div><strong>1×</strong> Standardticket</div>
-          </div>
-          <div class="item">
-            <div class="muted">Wann &amp; wo</div>
-            <div>Sa, 3. Mai 2026 · 19:30<br/>Kulturforum, Matthäikirchplatz, Berlin</div>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <h2 class="price" aria-label="Price">€29.00</h2>
-        <p class="muted">inkl. USt. · E-Ticket erscheint sofort nach erfolgreicher Zahlung</p>
-      </article>
-
-      <!-- Zahlung -->
-      <aside class="card panel" aria-label="Zahlung">
-        <h2 style="margin:0">Checkout</h2>
-        <p class="muted" style="margin-top:-6px">Zahle mit PayPal. Dein Ticket wird anschließend sofort geöffnet.</p>
-
-        <!-- Original Hosted Button Container -->
-        <div id="paypal-container-SP2E3J2QVPCUJ"></div>
-
-        <div class="divider"></div>
-        <small class="muted">
-          Mit dem Fortfahren stimmst du unseren <a href="#" rel="nofollow">AGB</a> und der <a href="#" rel="nofollow">Rückerstattungsrichtlinie</a> zu.
-        </small>
-      </aside>
-    </section>
-
-    <!-- Ticket Anzeige -->
-    <section class="ticket" id="ticket">
-      <div class="success-badge">✅ Zahlung erfolgreich!</div>
-      <h2>🎉 Dein Ticket für die Spring Gala</h2>
-      <p><strong>Spring Gala – General Admission</strong></p>
-      <p>Samstag, 3. Mai 2026 · 19:30<br/>Kulturforum, Matthäikirchplatz, Berlin</p>
-      
-      <div class="ticket-code" id="ticketCode">SG-XXXX-XXXX-XXXX</div>
-      
-      <p><strong>Gekauft am:</strong> <span id="purchaseDate"></span></p>
-      <p><strong>Bestellnummer:</strong> <span id="orderId"></span></p>
-      <p class="muted">Dieses Ticket wird am Einlass gescannt. Bitte zeige es vor oder drucke es aus.</p>
-      <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; margin:5px;">📄 Ticket drucken</button>
-      <button onclick="saveTicket()" style="background:#10b981; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; margin:5px;">💾 Ticket speichern</button>
-    </section>
-  </main>
-
-  <!-- Lade-Overlay -->
-  <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket wird erstellt …</div>
-
-  <script>
-    // Ticket-Generierung
-    function generateTicketCode(orderId = '') {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-      let result = 'SG-';
-      
-      if (orderId && orderId.length > 8) {
-        const idPart = orderId.substring(orderId.length - 8).toUpperCase();
-        result += idPart.match(/.{1,4}/g).join('-');
-      } else {
-        for (let i = 0; i < 12; i++) {
-          if (i > 0 && i % 4 === 0) result += '-';
-          result += chars.charAt(Math.floor(Math.random() * chars.length));
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets kaufen – Spring Gala</title>
+    <style>
+        :root {
+            --bg: #0b0f14;
+            --card: #111827;
+            --muted: #9aa4b2;
+            --text: #e6edf3;
+            --line: #1f2937;
+            --accent: #60a5fa;
         }
-      }
-      return result;
-    }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f7fafc;
+                --card: #ffffff;
+                --text: #0b1220;
+                --line: #e5e7eb;
+                --muted: #4b5563;
+                --accent: #2563eb;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html, body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            line-height: 1.6;
+        }
+        
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        header {
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(6px);
+            background: color-mix(in oklab, var(--bg) 85%, transparent);
+            z-index: 100;
+        }
+        
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .brand {
+            font-weight: 700;
+            letter-spacing: .2px;
+            font-size: 1.5rem;
+        }
+        
+        .hero {
+            margin: 40px 0 30px;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+        
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 22px;
+        }
+        
+        .meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        
+        @media (max-width: 700px) {
+            .meta {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .item {
+            background: color-mix(in oklab, var(--card) 90%, var(--bg));
+            border: 1px dashed var(--line);
+            padding: 12px 14px;
+            border-radius: 12px;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 12px;
+            border: 1px solid #10b98155;
+            color: #10b981;
+            background: #10b9811a;
+        }
+        
+        .price {
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 800;
+            margin: 10px 0;
+        }
+        
+        .muted {
+            color: var(--muted);
+        }
+        
+        .divider {
+            height: 1px;
+            background: var(--line);
+            margin: 16px 0;
+        }
+        
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: #000a;
+            z-index: 9999;
+            font-size: 20px;
+        }
+        
+        .overlay.show {
+            display: flex;
+        }
+        
+        .ticket {
+            display: none;
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+            text-align: center;
+        }
+        
+        .ticket.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .ticket h2 {
+            color: var(--accent);
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        .ticket-code {
+            font-family: monospace;
+            font-size: 24px;
+            letter-spacing: 4px;
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px dashed var(--accent);
+        }
+        
+        .success-badge {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        
+        .payment-notice {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #f59e0b;
+            display: none;
+        }
+        
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: color-mix(in srgb, var(--accent) 80%, black);
+        }
+        
+        .btn-success {
+            background: #10b981;
+        }
+        
+        .btn-success:hover {
+            background: color-mix(in srgb, #10b981 80%, black);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="wrap">
+            <div class="brand">🎟️ EventBox</div>
+        </div>
+    </header>
 
-    function showTicket(orderId = '') {
-      console.log('Zeige Ticket an für Bestellung:', orderId);
-      
-      const ticket = document.getElementById('ticket');
-      const ticketCode = document.getElementById('ticketCode');
-      const purchaseDate = document.getElementById('purchaseDate');
-      const orderIdSpan = document.getElementById('orderId');
-      const overlay = document.getElementById('overlay');
-      
-      // Overlay anzeigen
-      overlay.classList.add('show');
-      
-      setTimeout(() => {
-        // Ticket Daten setzen
-        const now = new Date();
-        const ticketCodeValue = generateTicketCode(orderId);
-        
-        ticketCode.textContent = ticketCodeValue;
-        purchaseDate.textContent = now.toLocaleString('de-DE');
-        orderIdSpan.textContent = orderId || 'SG-' + Date.now();
-        
-        // Overlay ausblenden und Ticket anzeigen
-        overlay.classList.remove('show');
-        ticket.classList.add('show');
-        
-        // Zum Ticket scrollen
-        ticket.scrollIntoView({ behavior: 'smooth' });
-        
-        // Ticket in localStorage speichern
-        saveTicketToStorage(ticketCodeValue, orderId);
-        
-        console.log('Ticket erfolgreich angezeigt:', ticketCodeValue);
-      }, 1500);
-    }
+    <main class="wrap">
+        <!-- Zahlungserfolgs-Hinweis -->
+        <div class="payment-notice" id="paymentNotice">
+            <strong>✅ Zahlung erfolgreich!</strong> Dein Ticket wird gerade erstellt...
+        </div>
 
-    function saveTicketToStorage(code, orderId) {
-      const ticketData = {
-        event: "Spring Gala – General Admission",
-        date: "Samstag, 3. Mai 2026 · 19:30",
-        location: "Kulturforum, Matthäikirchplatz, Berlin",
-        code: code,
-        orderId: orderId,
-        purchased: new Date().toISOString()
-      };
-      
-      localStorage.setItem('springGalaTicket', JSON.stringify(ticketData));
-    }
+        <section class="hero">
+            <h1>Spring Gala – General Admission</h1>
+            <p>Samstag, 3. Mai 2026 · 19:30 — Kulturforum, Berlin</p>
+        </section>
 
-    function saveTicket() {
-      const saved = localStorage.getItem('springGalaTicket');
-      if (saved) {
-        alert('✅ Ticket wurde bereits gespeichert!');
-      } else {
-        alert('✅ Ticket gespeichert! Du kannst diese Seite später wieder aufrufen.');
-      }
-    }
+        <section class="grid">
+            <!-- Eventinfo -->
+            <article class="card">
+                <div class="badge">Verfügbar · Begrenzte Plätze</div>
+                <div class="meta">
+                    <div class="item">
+                        <div class="muted">Einlass</div>
+                        <div><strong>1×</strong> Standardticket</div>
+                    </div>
+                    <div class="item">
+                        <div class="muted">Wann &amp; wo</div>
+                        <div>Sa, 3. Mai 2026 · 19:30<br/>Kulturforum, Matthäikirchplatz, Berlin</div>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <h2 class="price">€29.00</h2>
+                <p class="muted">inkl. USt. · E-Ticket erscheint sofort nach erfolgreicher Zahlung</p>
+            </article>
 
-    // Beim Laden prüfen ob bereits ein Ticket existiert
-    window.addEventListener('load', function() {
-      const savedTicket = localStorage.getItem('springGalaTicket');
-      
-      if (savedTicket) {
-        const ticketData = JSON.parse(savedTicket);
-        document.getElementById('ticketCode').textContent = ticketData.code;
-        document.getElementById('purchaseDate').textContent = new Date(ticketData.purchased).toLocaleString('de-DE');
-        document.getElementById('orderId').textContent = ticketData.orderId || 'SG-' + Date.now();
-        document.getElementById('ticket').classList.add('show');
-      }
-    });
+            <!-- Zahlung -->
+            <aside class="card panel">
+                <h2 style="margin:0">Checkout</h2>
+                <p class="muted" style="margin-top:-6px">Zahle mit PayPal. Du wirst nach der Zahlung zurückgeleitet.</p>
 
-    // PayPal Hosted Button Integration
-    paypal.HostedButtons({
-      hostedButtonId: "SP2E3J2QVPCUJ",
-      
-      onApprove: function (data, actions) {
-        console.log('PayPal Zahlung erfolgreich! Order ID:', data.orderID);
-        
-        // Ticket sofort anzeigen
-        showTicket(data.orderID);
-        
-        // Optional: Erfolg in URL speichern für Refresh-Sicherheit
-        const url = new URL(window.location);
-        url.searchParams.set('paid', 'true');
-        url.searchParams.set('order', data.orderID);
-        window.history.replaceState({}, '', url);
-      },
-      
-      onError: function (err) {
-        console.error('PayPal Fehler:', err);
-        alert('Es gab ein Problem mit der Zahlung. Bitte versuche es erneut.');
-      },
-      
-      onCancel: function (data) {
-        console.log('Zahlung abgebrochen vom Benutzer');
-      }
-      
-    }).render("#paypal-container-SP2E3J2QVPCUJ");
-  </script>
+                <!-- PayPal Button Container -->
+                <div id="paypal-button-container"></div>
+
+                <div class="divider"></div>
+                <small class="muted">
+                    Mit dem Fortfahren stimmst du unseren <a href="#" rel="nofollow">AGB</a> und der <a href="#" rel="nofollow">Rückerstattungsrichtlinie</a> zu.
+                </small>
+            </aside>
+        </section>
+
+        <!-- Ticket Anzeige -->
+        <section class="ticket" id="ticket">
+            <div class="success-badge">✅ Ticket aktiv!</div>
+            <h2>🎉 Dein Ticket für die Spring Gala</h2>
+            <p><strong>Spring Gala – General Admission</strong></p>
+            <p>Samstag, 3. Mai 2026 · 19:30<br/>Kulturforum, Matthäikirchplatz, Berlin</p>
+            
+            <div class="ticket-code" id="ticketCode">SG-XXXX-XXXX-XXXX</div>
+            
+            <p><strong>Gekauft am:</strong> <span id="purchaseDate"></span></p>
+            <p><strong>PayPal-Transaktion:</strong> <span id="transactionId"></span></p>
+            <p class="muted">Dieses Ticket wird am Einlass gescannt. Bitte zeige es vor oder drucke es aus.</p>
+            <button class="btn" onclick="window.print()">📄 Ticket drucken</button>
+            <button class="btn btn-success" onclick="saveTicket()">💾 Ticket speichern</button>
+        </section>
+    </main>
+
+    <!-- Lade-Overlay -->
+    <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket wird erstellt …</div>
+
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AZF9k3WXpql86GLTQgikA93ORNtq7jjBITh6xzvhBw6O8f6zijsi1hjXzu0C3vV4PxPxTUtSgW_DzHEc&currency=EUR"></script>
+
+    <script>
+        // Ticket-Generierung
+        function generateTicketCode(orderId = '') {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+            let result = 'SG-';
+            
+            if (orderId && orderId.length > 8) {
+                const idPart = orderId.substring(orderId.length - 8).toUpperCase();
+                result += idPart.match(/.{1,4}/g).join('-');
+            } else {
+                for (let i = 0; i < 12; i++) {
+                    if (i > 0 && i % 4 === 0) result += '-';
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+            }
+            return result;
+        }
+
+        function showTicket(orderId = '') {
+            console.log('Erstelle Ticket...');
+            
+            const ticket = document.getElementById('ticket');
+            const ticketCode = document.getElementById('ticketCode');
+            const purchaseDate = document.getElementById('purchaseDate');
+            const transactionSpan = document.getElementById('transactionId');
+            const overlay = document.getElementById('overlay');
+            const paymentNotice = document.getElementById('paymentNotice');
+            
+            // Hinweis und Overlay anzeigen
+            paymentNotice.style.display = 'block';
+            overlay.classList.add('show');
+            
+            setTimeout(() => {
+                // Ticket Daten setzen
+                const now = new Date();
+                const ticketCodeValue = generateTicketCode(orderId);
+                
+                ticketCode.textContent = ticketCodeValue;
+                purchaseDate.textContent = now.toLocaleString('de-DE');
+                transactionSpan.textContent = orderId || 'PP-' + Date.now();
+                
+                // Overlay ausblenden und Ticket anzeigen
+                overlay.classList.remove('show');
+                ticket.classList.add('show');
+                
+                // Zum Ticket scrollen
+                ticket.scrollIntoView({ behavior: 'smooth' });
+                
+                // Ticket in localStorage speichern
+                saveTicketToStorage(ticketCodeValue, orderId);
+                
+                console.log('Ticket erfolgreich erstellt:', ticketCodeValue);
+            }, 2000);
+        }
+
+        function saveTicketToStorage(code, orderId) {
+            const ticketData = {
+                event: "Spring Gala – General Admission",
+                date: "Samstag, 3. Mai 2026 · 19:30",
+                location: "Kulturforum, Matthäikirchplatz, Berlin",
+                code: code,
+                orderId: orderId,
+                purchased: new Date().toISOString()
+            };
+            
+            localStorage.setItem('springGalaTicket', JSON.stringify(ticketData));
+        }
+
+        function saveTicket() {
+            const saved = localStorage.getItem('springGalaTicket');
+            if (saved) {
+                alert('✅ Ticket wurde bereits gespeichert!');
+            } else {
+                alert('✅ Ticket gespeichert! Du kannst diese Seite später wieder aufrufen.');
+            }
+        }
+
+        // Beim Laden prüfen ob bereits ein Ticket existiert
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentSuccess = urlParams.get('payment') === 'success';
+            const transactionId = urlParams.get('transaction_id');
+            
+            const savedTicket = localStorage.getItem('springGalaTicket');
+            
+            // Wenn URL Parameter auf erfolgreiche Zahlung hinweisen
+            if (paymentSuccess) {
+                showTicket(transactionId);
+            }
+            // Oder wenn bereits ein Ticket gespeichert ist
+            else if (savedTicket) {
+                const ticketData = JSON.parse(savedTicket);
+                document.getElementById('ticketCode').textContent = ticketData.code;
+                document.getElementById('purchaseDate').textContent = new Date(ticketData.purchased).toLocaleString('de-DE');
+                document.getElementById('transactionId').textContent = ticketData.orderId || 'PP-' + Date.now();
+                document.getElementById('ticket').classList.add('show');
+            }
+        });
+
+        // PayPal Smart Buttons Integration
+        paypal.Buttons({
+            style: {
+                shape: 'rect',
+                color: 'gold',
+                layout: 'vertical',
+                label: 'paypal'
+            },
+
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '29.00',
+                            currency_code: 'EUR'
+                        },
+                        description: 'Spring Gala - General Admission Ticket'
+                    }],
+                    application_context: {
+                        shipping_preference: 'NO_SHIPPING',
+                        user_action: 'PAY_NOW'
+                    }
+                });
+            },
+
+            onApprove: function(data, actions) {
+                console.log('Zahlung erfolgreich:', data.orderID);
+                
+                // Bestellung capturen
+                return actions.order.capture().then(function(details) {
+                    console.log('Transaction completed by', details.payer.name.given_name);
+                    
+                    // Ticket anzeigen mit der echten Order ID
+                    showTicket(data.orderID);
+                    
+                    // Erfolgs-URL setzen für Refresh-Sicherheit
+                    const successUrl = window.location.href.split('?')[0] + `?payment=success&transaction_id=${data.orderID}`;
+                    window.history.replaceState({}, '', successUrl);
+                });
+            },
+
+            onError: function(err) {
+                console.error('PayPal Fehler:', err);
+                alert('Es gab ein Problem mit der Zahlung. Bitte versuche es erneut.');
+            },
+
+            onCancel: function(data) {
+                console.log('Zahlung abgebrochen');
+            }
+
+        }).render('#paypal-button-container');
+    </script>
 </body>
 </html>
