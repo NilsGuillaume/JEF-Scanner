@@ -12,6 +12,7 @@
   </script>
 
   <style>
+    /* Deine bestehenden Styles bleiben gleich */
     :root{
       --bg:#0b0f14; --card:#111827; --muted:#9aa4b2; --text:#e6edf3; --line:#1f2937;
       --accent:#60a5fa;
@@ -109,18 +110,20 @@
   <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket wird erstellt …</div>
 
   <script>
-    // Einfache Lösung ohne Backend
-    function generateTicketCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-      let result = 'SG-';
-      for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 4 === 0) result += '-';
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    // Prüfe beim Laden der Seite auf URL-Parameter
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+      
+      if (paymentStatus === 'success') {
+        generateAndShowTicket();
+      } else {
+        // Prüfe auf gespeichertes Ticket
+        checkExistingTicket();
       }
-      return result;
-    }
+    });
 
-    function showTicket() {
+    function generateAndShowTicket() {
       const ticket = document.getElementById('ticket');
       const ticketCode = document.getElementById('ticketCode');
       const overlay = document.getElementById('overlay');
@@ -128,30 +131,53 @@
       // Overlay anzeigen
       overlay.classList.add('show');
       
-      // Kurze Verzögerung für realistischen Effekt
       setTimeout(() => {
-        // Ticket Code generieren
-        ticketCode.textContent = generateTicketCode();
+        // Eindeutigen Ticket-Code generieren
+        const newTicketCode = generateTicketCode();
+        ticketCode.textContent = newTicketCode;
+        
+        // Ticket im localStorage speichern
+        saveTicketToStorage(newTicketCode);
         
         // Overlay ausblenden und Ticket anzeigen
         overlay.classList.remove('show');
         ticket.classList.add('show');
-        
-        // Zum Ticket scrollen
         ticket.scrollIntoView({ behavior: 'smooth' });
+        
+        // URL bereinigen (optional)
+        window.history.replaceState({}, document.title, window.location.pathname);
       }, 2000);
     }
 
-    // PayPal Integration ohne Backend
+    function saveTicketToStorage(ticketCode) {
+      localStorage.setItem('springGalaTicket', ticketCode);
+      sessionStorage.setItem('currentTicket', ticketCode);
+    }
+
+    function checkExistingTicket() {
+      const savedTicket = localStorage.getItem('springGalaTicket');
+      if (savedTicket) {
+        document.getElementById('ticketCode').textContent = savedTicket;
+        document.getElementById('ticket').classList.add('show');
+      }
+    }
+
+    function generateTicketCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+      let result = 'SG-';
+      for (let i = 0; i < 12; i++) {
+        if (i > 0 && i % 4 === 0) result += '-';
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Zeitstempel für mehr Eindeutigkeit
+      const timestamp = Date.now().toString().slice(-4);
+      return result + '-' + timestamp;
+    }
+
+    // PayPal Integration
     paypal.HostedButtons({
       hostedButtonId: "SP2E3J2QVPCUJ",
-      onApprove: function (data, actions) {
-        // Zeige das Ticket direkt nach erfolgreicher Zahlung an
-        showTicket();
-        
-        // Optional: Erfolgsmeldung in Konsole
-        console.log('Zahlung erfolgreich! Order ID:', data.orderID);
-      },
       onError: function (err) {
         console.error('PayPal Fehler:', err);
         alert('Es gab ein Problem mit der Zahlung. Bitte versuche es erneut.');
