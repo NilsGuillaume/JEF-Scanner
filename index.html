@@ -6,11 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
 
-  <!-- PayPal SDK -->
-  <script 
-    src="https://www.paypal.com/sdk/js?client-id=BAA6Z2kU6-TesiMjcbBozmJQ2pDPYMmF4VODKR07Gn0n-tQjK8XFlfo_ENTXTOIhGLHluhWN4Br2Z0_ukQ&components=hosted-buttons&disable-funding=venmo&currency=EUR">
-  </script>
-
   <!-- QR Code Library -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
@@ -76,7 +71,56 @@
       border-radius: 8px; 
       display: inline-block; 
     }
-    .paypal-button-container { margin-top: 20px; }
+    .paypal-button-container { 
+      margin-top: 20px; 
+      text-align: center;
+    }
+    
+    /* Custom PayPal button styles */
+    .pp-RZ98GVBSLKK4W {
+      text-align:center;
+      border:none;
+      border-radius:0.25rem;
+      min-width:11.625rem;
+      padding:0 2rem;
+      height:2.625rem;
+      font-weight:bold;
+      background-color:#FFD140;
+      color:#000000;
+      font-family:"Helvetica Neue",Arial,sans-serif;
+      font-size:1rem;
+      line-height:1.25rem;
+      cursor:pointer;
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    
+    .paypal-form {
+      display: inline-grid;
+      justify-items: center;
+      align-content: start;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    
+    .paypal-logos {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .paypal-footer {
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .paypal-footer img {
+      height: 0.875rem;
+      vertical-align: middle;
+    }
     
     /* Success state */
     .form-success { 
@@ -158,8 +202,18 @@
           <div class="error-message" id="emailError">Please enter a valid email address</div>
         </div>
 
-        <!-- PayPal Button Container -->
-        <div class="paypal-button-container" id="paypal-container"></div>
+        <!-- Custom PayPal Button Container -->
+        <div class="paypal-button-container" id="paypal-container">
+          <form id="paypal-form" class="paypal-form" onsubmit="return handlePayPalSubmit(event)">
+            <input class="pp-RZ98GVBSLKK4W" type="submit" value="Jetzt kaufen" />
+            <div class="paypal-logos">
+              <img src="https://www.paypalobjects.com/images/Debit_Credit_APM.svg" alt="cards" />
+              <div class="paypal-footer">
+                Abgewickelt durch <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal"/>
+              </div>
+            </div>
+          </form>
+        </div>
 
         <div class="divider"></div>
       </aside>
@@ -224,6 +278,26 @@
       
       if (name) localStorage.setItem('ticketName', name);
       if (email) localStorage.setItem('ticketEmail', email);
+    }
+
+    function handlePayPalSubmit(event) {
+      // Validate form before proceeding with PayPal
+      if (!validateForm()) {
+        event.preventDefault();
+        return false;
+      }
+      
+      // Save form data before redirecting to PayPal
+      saveFormData();
+      
+      // Add payment success parameter to the return URL
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('payment', 'success');
+      
+      // You might need to configure this in your PayPal button settings
+      // For now, we'll rely on localStorage to restore data after return
+      
+      return true; // Allow form submission to proceed
     }
 
     async function processSuccessfulPayment() {
@@ -392,31 +466,6 @@
       alert(message);
     }
 
-    // Enhanced PayPal Integration
-    paypal.HostedButtons({
-      hostedButtonId: "SP2E3J2QVPCUJ",
-      onInit: function (data, actions) {
-        console.log('PayPal button initialized');
-      },
-      onClick: function () {
-        // Save form data before redirecting to PayPal
-        saveFormData();
-        
-        // Validate form before proceeding with PayPal
-        if (!validateForm()) {
-          return false; // Prevent PayPal from opening
-        }
-        return true; // Allow PayPal to proceed
-      },
-      onError: function (err) {
-        console.error('PayPal Error:', err);
-        alert('There was an error with your payment. Please try again or contact us at: konstanz@jef-bw.de');
-      },
-      onCancel: function (data) {
-        console.log('Payment cancelled by user');
-      }
-    }).render("#paypal-container");
-
     // Save form data on input change
     document.getElementById('name').addEventListener('input', saveFormData);
     document.getElementById('email').addEventListener('input', saveFormData);
@@ -424,4 +473,4 @@
     document.getElementById('email').addEventListener('blur', validateForm);
   </script>
 </body>
-</html>c
+</html>
