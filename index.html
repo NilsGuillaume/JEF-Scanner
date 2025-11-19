@@ -11,6 +11,9 @@
     src="https://www.paypal.com/sdk/js?client-id=BAA6Z2kU6-TesiMjcbBozmJQ2pDPYMmF4VODKR07Gn0n-tQjK8XFlfo_ENTXTOIhGLHluhWN4Br2Z0_ukQ&components=hosted-buttons&disable-funding=venmo&currency=EUR">
   </script>
 
+  <!-- QR Code Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
   <style>
     /* Deine bestehenden Styles bleiben gleich */
     :root{
@@ -43,28 +46,60 @@
     .ticket.show{ display:block; }
     .ticket h2{ color:var(--accent); margin-top:0; }
     .ticket-code{ font-family:monospace; font-size:24px; letter-spacing:4px; background:var(--bg); padding:12px; border-radius:8px; margin:16px 0; }
+    
+    /* New styles for form and QR code */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .form-input { 
+      width: 100%; 
+      padding: 12px; 
+      border: 1px solid var(--line); 
+      border-radius: 8px; 
+      background: var(--card); 
+      color: var(--text);
+      font-size: 16px;
+    }
+    .form-input:focus { 
+      outline: none; 
+      border-color: var(--accent); 
+    }
+    .error-message { 
+      color: #ef4444; 
+      font-size: 14px; 
+      margin-top: 4px; 
+      display: none; 
+    }
+    .qr-code { 
+      margin: 20px auto; 
+      padding: 10px; 
+      background: white; 
+      border-radius: 8px; 
+      display: inline-block; 
+    }
+    .paypal-button-container { margin-top: 20px; }
+    
     /* === Smooth green–blue background — keep this AT THE END === */
-html, body{
-  /* keep your existing typography/spacing or omit if already set elsewhere */
-  background:
-    radial-gradient(35rem 28rem at 22% 18%, rgba(173,219,46,0.45) 0%, rgba(16,185,129,0.30) 40%, transparent 60%),
-    radial-gradient(36rem 30rem at 62% 18%, rgba(99,102,241,0.55) 0%, rgba(37,99,235,0.35) 40%, transparent 62%),
-    radial-gradient(120rem 70rem at 50% -10%, #07233d 0%, #051a30 50%, #041426 100%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-}
+    html, body{
+      /* keep your existing typography/spacing or omit if already set elsewhere */
+      background:
+        radial-gradient(35rem 28rem at 22% 18%, rgba(173,219,46,0.45) 0%, rgba(16,185,129,0.30) 40%, transparent 60%),
+        radial-gradient(36rem 30rem at 62% 18%, rgba(99,102,241,0.55) 0%, rgba(37,99,235,0.35) 40%, transparent 62%),
+        radial-gradient(120rem 70rem at 50% -10%, #07233d 0%, #051a30 50%, #041426 100%);
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
 
-/* Light scheme variant */
-@media (prefers-color-scheme: light){
-  html, body{
-    background:
-      radial-gradient(35rem 28rem at 22% 18%, rgba(163,230,53,0.55) 0%, rgba(34,197,94,0.35) 40%, transparent 60%),
-      radial-gradient(36rem 30rem at 62% 18%, rgba(59,130,246,0.55) 0%, rgba(99,102,241,0.35) 40%, transparent 62%),
-      linear-gradient(180deg, #eaf3ff 0%, #f5fbff 100%);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-  }
-}
+    /* Light scheme variant */
+    @media (prefers-color-scheme: light){
+      html, body{
+        background:
+          radial-gradient(35rem 28rem at 22% 18%, rgba(163,230,53,0.55) 0%, rgba(34,197,94,0.35) 40%, transparent 60%),
+          radial-gradient(36rem 30rem at 62% 18%, rgba(59,130,246,0.55) 0%, rgba(99,102,241,0.35) 40%, transparent 62%),
+          linear-gradient(180deg, #eaf3ff 0%, #f5fbff 100%);
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+      }
+    }
   </style>
 </head>
 
@@ -105,8 +140,21 @@ html, body{
         <h2 style="margin:0">Checkout</h2>
         <p class="muted" style="margin-top:-6px">Pay with Paypal or Debit / Credit Card. The ticket will be opened after successful payment.</p>
 
+        <!-- Personal Information Form -->
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name</label>
+          <input type="text" id="name" class="form-input" placeholder="Enter your full name" required>
+          <div class="error-message" id="nameError">Please enter your name</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+          <div class="error-message" id="emailError">Please enter a valid email address</div>
+        </div>
+
         <!-- PayPal Button Container -->
-        <div id="paypal-container-SP2E3J2QVPCUJ"></div>
+        <div class="paypal-button-container" id="paypal-container-SP2E3J2QVPCUJ"></div>
 
         <div class="divider"></div>
         
@@ -121,6 +169,9 @@ html, body{
       
       <div class="ticket-code" id="ticketCode">SG-XXXX-XXXX-XXXX</div>
       
+      <!-- QR Code Container -->
+      <div id="qrCodeContainer"></div>
+      
       <p class="muted">This ticket will be scanned upon entry. Please have it ready.</p>
       <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Ticket drucken</button>
     </section>
@@ -130,6 +181,10 @@ html, body{
   <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket is being produced …</div>
 
   <script>
+    // Backend configuration
+    const BACKEND_URL = 'https://jef-shop-backend.onrender.com'; // Replace with your actual backend URL
+    const BACKEND_PASSWORD = '536742513462138247235784210742847562938572591048674267720310648'; // Replace with your actual backend password
+
     // Prüfe beim Laden der Seite auf URL-Parameter
     document.addEventListener('DOMContentLoaded', function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -143,7 +198,40 @@ html, body{
       }
     });
 
-    function generateAndShowTicket() {
+    function validateForm() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      let isValid = true;
+
+      // Reset errors
+      document.getElementById('nameError').style.display = 'none';
+      document.getElementById('emailError').style.display = 'none';
+
+      // Validate name
+      if (!name) {
+        document.getElementById('nameError').style.display = 'block';
+        isValid = false;
+      }
+
+      // Validate email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        document.getElementById('emailError').style.display = 'block';
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    async function generateAndShowTicket() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      
+      if (!validateForm()) {
+        alert('Please fill in all required fields correctly.');
+        return;
+      }
+
       const ticket = document.getElementById('ticket');
       const ticketCode = document.getElementById('ticketCode');
       const overlay = document.getElementById('overlay');
@@ -151,22 +239,64 @@ html, body{
       // Overlay anzeigen
       overlay.classList.add('show');
       
-      setTimeout(() => {
-        // Eindeutigen Ticket-Code generieren
-        const newTicketCode = generateTicketCode();
-        ticketCode.textContent = newTicketCode;
+      try {
+        // Call backend API to get ticket
+        const response = await fetch(`${BACKEND_URL}/ticket-request/${encodeURIComponent(email)},${encodeURIComponent(name)},${BACKEND_PASSWORD}`);
         
-        // Ticket im localStorage speichern
-        saveTicketToStorage(newTicketCode);
+        if (!response.ok) {
+          throw new Error('Failed to generate ticket');
+        }
         
-        // Overlay ausblenden und Ticket anzeigen
+        const data = await response.json();
+        const ticketCodeFromAPI = data.code;
+        
+        // Display ticket code from API
+        ticketCode.textContent = ticketCodeFromAPI;
+        
+        // Generate QR code
+        generateQRCode(ticketCodeFromAPI);
+        
+        // Save ticket to storage
+        saveTicketToStorage(ticketCodeFromAPI);
+        
+        // Show ticket
         overlay.classList.remove('show');
         ticket.classList.add('show');
         ticket.scrollIntoView({ behavior: 'smooth' });
         
         // URL bereinigen (optional)
         window.history.replaceState({}, document.title, window.location.pathname);
-      }, 2000);
+        
+      } catch (error) {
+        console.error('Error generating ticket:', error);
+        overlay.classList.remove('show');
+        alert('Error generating ticket. Please contact us at konstanz@jef-bw.de');
+      }
+    }
+
+    function generateQRCode(ticketCode) {
+      const qrCodeContainer = document.getElementById('qrCodeContainer');
+      qrCodeContainer.innerHTML = ''; // Clear previous QR code
+      
+      QRCode.toCanvas(qrCodeContainer, ticketCode, { 
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      }, function (error) {
+        if (error) {
+          console.error('Error generating QR code:', error);
+          qrCodeContainer.innerHTML = '<p>QR Code could not be generated</p>';
+        } else {
+          // Add a class to the canvas for styling
+          const canvas = qrCodeContainer.querySelector('canvas');
+          if (canvas) {
+            canvas.classList.add('qr-code');
+          }
+        }
+      });
     }
 
     function saveTicketToStorage(ticketCode) {
@@ -178,34 +308,38 @@ html, body{
       const savedTicket = localStorage.getItem('springGalaTicket');
       if (savedTicket) {
         document.getElementById('ticketCode').textContent = savedTicket;
+        generateQRCode(savedTicket);
         document.getElementById('ticket').classList.add('show');
       }
     }
 
-    function generateTicketCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-      let result = 'SG-';
-      for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 4 === 0) result += '-';
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      
-      // Zeitstempel für mehr Eindeutigkeit
-      const timestamp = Date.now().toString().slice(-4);
-      return result + '-' + timestamp;
-    }
-
-    // PayPal Integration
+    // Modified PayPal Integration to include form validation
     paypal.HostedButtons({
       hostedButtonId: "SP2E3J2QVPCUJ",
+      onInit: function (data, actions) {
+        // This function is called when the button is initialized
+        console.log('PayPal button initialized');
+      },
+      onClick: function () {
+        // Validate form before proceeding with PayPal
+        if (!validateForm()) {
+          // Prevent PayPal from opening if form is invalid
+          return false;
+        }
+        return true;
+      },
       onError: function (err) {
         console.error('PayPal Error:', err);
         alert('There was an error with your payment. Please try again or contact us under: konstanz@jef-bw.de .');
       },
       onCancel: function (data) {
-        console.log('Payment Error');
+        console.log('Payment cancelled');
       }
     }).render("#paypal-container-SP2E3J2QVPCUJ");
+
+    // Add form validation on input change
+    document.getElementById('name').addEventListener('input', validateForm);
+    document.getElementById('email').addEventListener('input', validateForm);
   </script>
 </body>
 </html>
