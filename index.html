@@ -76,52 +76,6 @@
       text-align: center;
     }
     
-    /* Custom PayPal button styles */
-    .pp-RZ98GVBSLKK4W {
-      text-align:center;
-      border:none;
-      border-radius:0.25rem;
-      min-width:11.625rem;
-      padding:0 2rem;
-      height:2.625rem;
-      font-weight:bold;
-      background-color:#FFD140;
-      color:#000000;
-      font-family:"Helvetica Neue",Arial,sans-serif;
-      font-size:1rem;
-      line-height:1.25rem;
-      cursor:pointer;
-      width: 100%;
-      margin-bottom: 0.5rem;
-    }
-    
-    .paypal-form {
-      display: inline-grid;
-      justify-items: center;
-      align-content: start;
-      gap: 0.5rem;
-      width: 100%;
-    }
-    
-    .paypal-logos {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .paypal-footer {
-      font-size: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-    
-    .paypal-footer img {
-      height: 0.875rem;
-      vertical-align: middle;
-    }
-    
     /* Success state */
     .form-success { 
       border-color: #10b981; 
@@ -148,6 +102,23 @@
         background-attachment: fixed;
         background-repeat: no-repeat;
       }
+    }
+
+    /* Your EXACT PayPal button styles */
+    .pp-RZ98GVBSLKK4W{
+      text-align:center;
+      border:none;
+      border-radius:0.25rem;
+      min-width:11.625rem;
+      padding:0 2rem;
+      height:2.625rem;
+      font-weight:bold;
+      background-color:#FFD140;
+      color:#000000;
+      font-family:"Helvetica Neue",Arial,sans-serif;
+      font-size:1rem;
+      line-height:1.25rem;
+      cursor:pointer;
     }
   </style>
 </head>
@@ -202,17 +173,16 @@
           <div class="error-message" id="emailError">Please enter a valid email address</div>
         </div>
 
-        <!-- Custom PayPal Button Container -->
-        <div class="paypal-button-container" id="paypal-container">
-          <form id="paypal-form" class="paypal-form" onsubmit="return handlePayPalSubmit(event)">
-            <input class="pp-RZ98GVBSLKK4W" type="submit" value="Jetzt kaufen" />
-            <div class="paypal-logos">
+        <!-- Your EXACT PayPal Button Code -->
+        <div class="paypal-button-container">
+          <div>
+            <style>.pp-RZ98GVBSLKK4W{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
+            <form id="paypal-form" action="https://www.paypal.com/ncp/payment/RZ98GVBSLKK4W" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
+              <input class="pp-RZ98GVBSLKK4W" type="submit" value="Jetzt kaufen" onclick="return handlePayPalClick(event)" />
               <img src="https://www.paypalobjects.com/images/Debit_Credit_APM.svg" alt="cards" />
-              <div class="paypal-footer">
-                Abgewickelt durch <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal"/>
-              </div>
-            </div>
-          </form>
+              <section style="font-size: 0.75rem;"> Abgewickelt durch <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
+            </form>
+          </div>
         </div>
 
         <div class="divider"></div>
@@ -240,8 +210,8 @@
 
   <script>
     // Backend configuration - UPDATE THESE WITH YOUR ACTUAL VALUES
-    const BACKEND_URL = 'https://jef-shop-backend.onrender.com'; // Replace with your backend URL
-    const BACKEND_PASSWORD = '536742513462138247235784210742847562938572591048674267720310648'; // Replace with your backend password
+    const BACKEND_URL = 'https://your-backend-url.com'; // Replace with your backend URL
+    const BACKEND_PASSWORD = 'your-backend-password'; // Replace with your backend password
 
     // Check on page load
     document.addEventListener('DOMContentLoaded', function() {
@@ -280,27 +250,27 @@
       if (email) localStorage.setItem('ticketEmail', email);
     }
 
-    function handlePayPalSubmit(event) {
+    function handlePayPalClick(event) {
+      console.log('PayPal button clicked');
+      
       // Validate form before proceeding with PayPal
       if (!validateForm()) {
         event.preventDefault();
+        alert('Bitte füllen Sie alle erforderlichen Felder korrekt aus.');
         return false;
       }
       
       // Save form data before redirecting to PayPal
       saveFormData();
+      console.log('Form data saved, proceeding to PayPal...');
       
-      // Add payment success parameter to the return URL
-      const currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.set('payment', 'success');
-      
-      // You might need to configure this in your PayPal button settings
-      // For now, we'll rely on localStorage to restore data after return
-      
-      return true; // Allow form submission to proceed
+      // Allow the form to submit normally
+      return true;
     }
 
     async function processSuccessfulPayment() {
+      console.log('Processing successful payment...');
+      
       const name = document.getElementById('name').value.trim();
       const email = document.getElementById('email').value.trim();
       
@@ -355,6 +325,7 @@
       overlay.classList.add('show');
       
       try {
+        console.log('Calling backend API...');
         // Call backend API to get ticket
         const response = await fetch(`${BACKEND_URL}/ticket-request/${encodeURIComponent(email)},${encodeURIComponent(name)},${BACKEND_PASSWORD}`);
         
@@ -364,6 +335,7 @@
         
         const data = await response.json();
         const ticketCodeFromAPI = data.code;
+        console.log('Ticket code received:', ticketCodeFromAPI);
         
         // Display ticket code from API
         ticketCode.textContent = ticketCodeFromAPI;
@@ -469,8 +441,6 @@
     // Save form data on input change
     document.getElementById('name').addEventListener('input', saveFormData);
     document.getElementById('email').addEventListener('input', saveFormData);
-    document.getElementById('name').addEventListener('blur', validateForm);
-    document.getElementById('email').addEventListener('blur', validateForm);
   </script>
 </body>
 </html>
