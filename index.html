@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
   <style>
-    /* Deine bestehenden Styles bleiben gleich */
+    /* Your existing styles remain the same */
     :root{
       --bg:#0b0f14; --card:#111827; --muted:#9aa4b2; --text:#e6edf3; --line:#1f2937;
       --accent:#60a5fa;
@@ -78,9 +78,14 @@
     }
     .paypal-button-container { margin-top: 20px; }
     
-    /* === Smooth green–blue background — keep this AT THE END === */
+    /* Success state */
+    .form-success { 
+      border-color: #10b981; 
+      background: color-mix(in oklab, var(--card) 95%, #10b981); 
+    }
+    
+    /* === Smooth green–blue background === */
     html, body{
-      /* keep your existing typography/spacing or omit if already set elsewhere */
       background:
         radial-gradient(35rem 28rem at 22% 18%, rgba(173,219,46,0.45) 0%, rgba(16,185,129,0.30) 40%, transparent 60%),
         radial-gradient(36rem 30rem at 62% 18%, rgba(99,102,241,0.55) 0%, rgba(37,99,235,0.35) 40%, transparent 62%),
@@ -126,19 +131,19 @@
             <div><strong>1×</strong> Standard ticket</div>
           </div>
           <div class="item">
-            <div class="muted">Wenn &amp; Where</div>
-            <div>, Wednesday, 26. November 2026 · 22:00<br/>Kantine, Oberlohnstraße 3, 78467 Konstanz</div>
+            <div class="muted">When &amp; Where</div>
+            <div>Wednesday, 26. November 2026 · 22:00<br/>Kantine, Oberlohnstraße 3, 78467 Konstanz</div>
           </div>
         </div>
         <div class="divider"></div>
         <h2 class="price" aria-label="Price">€6.00</h2>
-        <p class="muted">E-Ticket will appear on this page after successful payment, in case you closed the page. Try to reopen the page or contact us under konstanz@jef-bw.de </p>
+        <p class="muted">E-Ticket will appear on this page after successful payment. If you closed the page, reopen it or contact us at konstanz@jef-bw.de</p>
       </article>
 
-      <!-- Zahlung -->
-      <aside class="card panel" aria-label="Zahlung">
+      <!-- Payment -->
+      <aside class="card panel" aria-label="Payment">
         <h2 style="margin:0">Checkout</h2>
-        <p class="muted" style="margin-top:-6px">Pay with Paypal or Debit / Credit Card. The ticket will be opened after successful payment.</p>
+        <p class="muted" style="margin-top:-6px">Pay with PayPal or Debit/Credit Card. The ticket will be available after successful payment.</p>
 
         <!-- Personal Information Form -->
         <div class="form-group">
@@ -154,14 +159,13 @@
         </div>
 
         <!-- PayPal Button Container -->
-        <div class="paypal-button-container" id="paypal-container-SP2E3J2QVPCUJ"></div>
+        <div class="paypal-button-container" id="paypal-container"></div>
 
         <div class="divider"></div>
-        
       </aside>
     </section>
 
-    <!-- Ticket Anzeige (wird nach Zahlung angezeigt) -->
+    <!-- Ticket Display (shown after payment) -->
     <section class="ticket" id="ticket">
       <h2>Your Party Ticket for Beats without Borders</h2>
       <p><strong>Beats without Borders</strong></p>
@@ -173,30 +177,75 @@
       <div id="qrCodeContainer"></div>
       
       <p class="muted">This ticket will be scanned upon entry. Please have it ready.</p>
-      <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Ticket drucken</button>
+      <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Print Ticket</button>
     </section>
   </main>
 
-  <!-- Lade-Overlay -->
-  <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket is being produced …</div>
+  <!-- Loading Overlay -->
+  <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Processing your ticket...</div>
 
   <script>
-    // Backend configuration
-    const BACKEND_URL = 'https://jef-shop-backend.onrender.com'; // Replace with your actual backend URL
-    const BACKEND_PASSWORD = '536742513462138247235784210742847562938572591048674267720310648'; // Replace with your actual backend password
+    // Backend configuration - UPDATE THESE WITH YOUR ACTUAL VALUES
+    const BACKEND_URL = 'https://jef-shop-backend.onrender.com'; // Replace with your backend URL
+    const BACKEND_PASSWORD = '536742513462138247235784210742847562938572591048674267720310648'; // Replace with your backend password
 
-    // Prüfe beim Laden der Seite auf URL-Parameter
+    // Check on page load
     document.addEventListener('DOMContentLoaded', function() {
+      // Restore form data from localStorage if available
+      restoreFormData();
+      
       const urlParams = new URLSearchParams(window.location.search);
       const paymentStatus = urlParams.get('payment');
       
       if (paymentStatus === 'success') {
-        generateAndShowTicket();
+        // Process successful payment
+        processSuccessfulPayment();
       } else {
-        // Prüfe auf gespeichertes Ticket
+        // Check for existing ticket
         checkExistingTicket();
       }
     });
+
+    function restoreFormData() {
+      const savedName = localStorage.getItem('ticketName');
+      const savedEmail = localStorage.getItem('ticketEmail');
+      
+      if (savedName) {
+        document.getElementById('name').value = savedName;
+      }
+      if (savedEmail) {
+        document.getElementById('email').value = savedEmail;
+      }
+    }
+
+    function saveFormData() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      
+      if (name) localStorage.setItem('ticketName', name);
+      if (email) localStorage.setItem('ticketEmail', email);
+    }
+
+    async function processSuccessfulPayment() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      
+      // If form data is missing, try to get from localStorage
+      const finalName = name || localStorage.getItem('ticketName') || '';
+      const finalEmail = email || localStorage.getItem('ticketEmail') || '';
+      
+      if (!finalName || !finalEmail) {
+        // If we still don't have the data, show error
+        showError('Missing information. Please contact us at konstanz@jef-bw.de with your payment details.');
+        return;
+      }
+
+      // Update form fields with the data we're using
+      document.getElementById('name').value = finalName;
+      document.getElementById('email').value = finalEmail;
+      
+      await generateAndShowTicket(finalName, finalEmail);
+    }
 
     function validateForm() {
       const name = document.getElementById('name').value.trim();
@@ -223,20 +272,12 @@
       return isValid;
     }
 
-    async function generateAndShowTicket() {
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      
-      if (!validateForm()) {
-        alert('Please fill in all required fields correctly.');
-        return;
-      }
-
+    async function generateAndShowTicket(name, email) {
       const ticket = document.getElementById('ticket');
       const ticketCode = document.getElementById('ticketCode');
       const overlay = document.getElementById('overlay');
       
-      // Overlay anzeigen
+      // Show overlay
       overlay.classList.add('show');
       
       try {
@@ -257,20 +298,23 @@
         generateQRCode(ticketCodeFromAPI);
         
         // Save ticket to storage
-        saveTicketToStorage(ticketCodeFromAPI);
+        saveTicketToStorage(ticketCodeFromAPI, name, email);
+        
+        // Mark form as completed
+        markFormAsCompleted();
         
         // Show ticket
         overlay.classList.remove('show');
         ticket.classList.add('show');
         ticket.scrollIntoView({ behavior: 'smooth' });
         
-        // URL bereinigen (optional)
+        // Clean URL (optional)
         window.history.replaceState({}, document.title, window.location.pathname);
         
       } catch (error) {
         console.error('Error generating ticket:', error);
         overlay.classList.remove('show');
-        alert('Error generating ticket. Please contact us at konstanz@jef-bw.de');
+        showError('Error generating ticket. Please contact us at konstanz@jef-bw.de');
       }
     }
 
@@ -299,47 +343,85 @@
       });
     }
 
-    function saveTicketToStorage(ticketCode) {
+    function saveTicketToStorage(ticketCode, name, email) {
       localStorage.setItem('springGalaTicket', ticketCode);
+      localStorage.setItem('ticketName', name);
+      localStorage.setItem('ticketEmail', email);
       sessionStorage.setItem('currentTicket', ticketCode);
+      
+      // Also store complete ticket info
+      const ticketInfo = {
+        code: ticketCode,
+        name: name,
+        email: email,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('ticketInfo', JSON.stringify(ticketInfo));
     }
 
     function checkExistingTicket() {
       const savedTicket = localStorage.getItem('springGalaTicket');
+      const savedName = localStorage.getItem('ticketName');
+      const savedEmail = localStorage.getItem('ticketEmail');
+      
       if (savedTicket) {
         document.getElementById('ticketCode').textContent = savedTicket;
         generateQRCode(savedTicket);
         document.getElementById('ticket').classList.add('show');
+        
+        // Restore form data
+        if (savedName) document.getElementById('name').value = savedName;
+        if (savedEmail) document.getElementById('email').value = savedEmail;
+        
+        // Mark form as completed
+        markFormAsCompleted();
       }
     }
 
-    // Modified PayPal Integration to include form validation
+    function markFormAsCompleted() {
+      const nameInput = document.getElementById('name');
+      const emailInput = document.getElementById('email');
+      
+      nameInput.classList.add('form-success');
+      emailInput.classList.add('form-success');
+      nameInput.readOnly = true;
+      emailInput.readOnly = true;
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+
+    // Enhanced PayPal Integration
     paypal.HostedButtons({
       hostedButtonId: "SP2E3J2QVPCUJ",
       onInit: function (data, actions) {
-        // This function is called when the button is initialized
         console.log('PayPal button initialized');
       },
       onClick: function () {
+        // Save form data before redirecting to PayPal
+        saveFormData();
+        
         // Validate form before proceeding with PayPal
         if (!validateForm()) {
-          // Prevent PayPal from opening if form is invalid
-          return false;
+          return false; // Prevent PayPal from opening
         }
-        return true;
+        return true; // Allow PayPal to proceed
       },
       onError: function (err) {
         console.error('PayPal Error:', err);
-        alert('There was an error with your payment. Please try again or contact us under: konstanz@jef-bw.de .');
+        alert('There was an error with your payment. Please try again or contact us at: konstanz@jef-bw.de');
       },
       onCancel: function (data) {
-        console.log('Payment cancelled');
+        console.log('Payment cancelled by user');
       }
-    }).render("#paypal-container-SP2E3J2QVPCUJ");
+    }).render("#paypal-container");
 
-    // Add form validation on input change
-    document.getElementById('name').addEventListener('input', validateForm);
-    document.getElementById('email').addEventListener('input', validateForm);
+    // Save form data on input change
+    document.getElementById('name').addEventListener('input', saveFormData);
+    document.getElementById('email').addEventListener('input', saveFormData);
+    document.getElementById('name').addEventListener('blur', validateForm);
+    document.getElementById('email').addEventListener('blur', validateForm);
   </script>
 </body>
-</html>
+</html>c
