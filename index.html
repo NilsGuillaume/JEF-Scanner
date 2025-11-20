@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
 
-  <!-- PayPal SDK -->
+  <!-- PayPal SDK (standard buttons, no hosted-buttons) -->
   <script 
-    src="https://www.paypal.com/sdk/js?client-id=BAA6Z2kU6-TesiMjcbBozmJQ2pDPYMmF4VODKR07Gn0n-tQjK8XFlfo_ENTXTOIhGLHluhWN4Br2Z0_ukQ&components=hosted-buttons&disable-funding=venmo&currency=EUR">
+    src="https://www.paypal.com/sdk/js?client-id=BAA6Z2kU6-TesiMjcbBozmJQ2pDPYMmF4VODKR07Gn0n-tQjK8XFlfo_ENTXTOIhGLHluhWN4Br2Z0_ukQ&disable-funding=venmo&currency=EUR">
   </script>
 
   <style>
@@ -36,16 +36,14 @@
     .muted{ color:var(--muted) }
     .divider{ height:1px; background:var(--line); margin:16px 0 }
     .panel{ display:flex; flex-direction:column; gap:14px }
-
     .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#000a; z-index:9999; font-size:20px }
     .overlay.show{ display:flex }
-
     .ticket{ display:none; background:var(--card); border:2px solid var(--accent); border-radius:16px; padding:24px; margin-top:24px; text-align:center; }
     .ticket.show{ display:block; }
     .ticket h2{ color:var(--accent); margin-top:0; }
     .ticket-code{ font-family:monospace; font-size:24px; letter-spacing:4px; background:var(--bg); padding:12px; border-radius:8px; margin:16px 0; }
 
-    /* NEW: form fields */
+    /* NEW: simple styling for the form fields */
     .field-group{
       display:flex;
       flex-direction:column;
@@ -73,7 +71,7 @@
       margin-top:4px;
     }
 
-    /* QR code container */
+    /* NEW: QR code container */
     #qrcode{
       margin:16px auto 0;
       width:160px;
@@ -126,73 +124,55 @@
             <div><strong>1×</strong> Standard ticket</div>
           </div>
           <div class="item">
-            <div class="muted">When &amp; Where</div>
-            <div>Wednesday, 26. November 2026 · 22:00<br/>Kantine, Oberlohnstraße 3, 78467 Konstanz</div>
+            <div class="muted">Wenn &amp; Where</div>
+            <div>, Wednesday, 26. November 2026 · 22:00<br/>Kantine, Oberlohnstraße 3, 78467 Konstanz</div>
           </div>
         </div>
         <div class="divider"></div>
         <h2 class="price" aria-label="Price">€6.00</h2>
-        <p class="muted">
-          Your E-Ticket will appear on this page after successful payment. If you close the page, you can reopen it on the same device and browser and your ticket will be shown again.
-          If there are any issues, contact us: <a href="mailto:konstanz@jef-bw.de">konstanz@jef-bw.de</a>.
-        </p>
+        <p class="muted">E-Ticket will appear on this page after successful payment, in case you closed the page. Try to reopen the page or contact us under konstanz@jef-bw.de </p>
       </article>
 
-      <!-- Checkout / Zahlung -->
+      <!-- Zahlung -->
       <aside class="card panel" aria-label="Zahlung">
         <h2 style="margin:0">Checkout</h2>
-        <p class="muted" style="margin-top:-6px">
-          Please enter your name and email so we can assign your ticket and send it to you.
-        </p>
+        <p class="muted" style="margin-top:-6px">Please enter your details and then pay with PayPal or Debit / Credit Card. The ticket will be opened after successful payment.</p>
 
-        <!-- NEW: Name + Email Form -->
-        <form id="userDetails" class="panel" onsubmit="event.preventDefault(); saveUserDetails();">
-          <div class="field-group">
-            <label for="fullName" class="field-label">Name*</label>
-            <input
-              id="fullName"
-              name="fullName"
-              type="text"
-              class="field-input"
-              required
-              placeholder="Vor- und Nachname"
-              autocomplete="name"
-            />
-          </div>
+        <!-- NEW: Name + Email inputs -->
+        <div class="field-group">
+          <label for="fullName" class="field-label">Name*</label>
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            class="field-input"
+            placeholder="Vor- und Nachname"
+            autocomplete="name"
+            required
+          />
+        </div>
 
-          <div class="field-group">
-            <label for="email" class="field-label">E-Mail-Adresse*</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              class="field-input"
-              required
-              placeholder="you@example.com"
-              autocomplete="email"
-            />
-            <p class="helper-text">
-              We use this to send you the ticket and to verify your purchase at the entrance.
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            style="margin-top:8px; align-self:flex-start; background:var(--accent); color:white; border:none; padding:8px 14px; border-radius:999px; cursor:pointer; font-size:14px;"
-          >
-            Daten speichern
-          </button>
-        </form>
+        <div class="field-group">
+          <label for="email" class="field-label">E-Mail-Adresse*</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            class="field-input"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+          <p class="helper-text">
+            We use this to send you the ticket and to verify your purchase at the entrance.
+          </p>
+        </div>
 
         <div class="divider"></div>
 
-        <p class="muted" style="margin-top:-6px">
-          Then pay with PayPal or debit / credit card. After PayPal confirms the payment,
-          your ticket (including QR-Code) will be generated automatically.
-        </p>
-
         <!-- PayPal Button Container -->
         <div id="paypal-container-SP2E3J2QVPCUJ"></div>
+        
       </aside>
     </section>
 
@@ -204,164 +184,112 @@
       
       <div class="ticket-code" id="ticketCode">SG-XXXX-XXXX-XXXX</div>
 
-      <!-- NEW: QR Code container -->
-      <div
-        id="qrcode"
-        role="img"
-        aria-label="QR code for your ticket"
-      ></div>
+      <!-- NEW: QR code container -->
+      <div id="qrcode" role="img" aria-label="QR code for your ticket"></div>
       
-      <p class="muted" style="margin-top:16px;">
-        This ticket (or the QR-Code) will be scanned upon entry. Please have it ready.
-      </p>
-      <button
-        onclick="window.print()"
-        style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;"
-      >
-        Ticket drucken
-      </button>
+      <p class="muted">This ticket will be scanned upon entry. Please have it ready.</p>
+      <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Ticket drucken</button>
     </section>
   </main>
 
   <!-- Lade-Overlay -->
   <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket is being produced …</div>
 
-  <!-- QRCode library (for client-side QR generation) -->
+  <!-- QRCode library (client-side QR generation) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script>
     // === CONFIG: set your backend URL + password here ===
-    // Example: "https://api.beatswithoutborders.de"
-    const BACKEND_BASE_URL = "https://jef-shop-backend.onrender.com";
-    const BACKEND_PASSWORD = "536742513462138247235784210742847562938572591048674267720310648";
+    const BACKEND_BASE_URL = "https://YOUR_BACKEND_DOMAIN_HERE";
+    const BACKEND_PASSWORD = "YOUR_BACKEND_PASSWORD_HERE";
 
-    // localStorage keys
-    const STORAGE_KEYS = {
-      ticket: "bw_ticket_code",
-      name: "bw_user_name",
-      email: "bw_user_email",
-    };
-
-    let qrInstance = null;
+    // Use same key name as before to keep behavior consistent
+    const TICKET_STORAGE_KEY = "springGalaTicket";
 
     document.addEventListener('DOMContentLoaded', function() {
-      // Prefill form with stored values, if available
-      restoreUserDetails();
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const paymentStatus = urlParams.get('payment');
-      
-      if (paymentStatus === 'success') {
-        // After PayPal redirect with ?payment=success
-        generateAndShowTicket();
-      } else {
-        // Check if there is a previously stored ticket
-        checkExistingTicket();
-      }
+      // On load, just show existing ticket if we have one
+      checkExistingTicket();
     });
 
-    // Save name + email in localStorage
-    function saveUserDetails() {
-      const nameInput = document.getElementById('fullName');
-      const emailInput = document.getElementById('email');
-
-      const name = nameInput.value.trim();
-      const email = emailInput.value.trim();
-
-      if (!name || !email) {
-        alert('Please enter your name and email address.');
-        return false;
-      }
-
-      localStorage.setItem(STORAGE_KEYS.name, name);
-      localStorage.setItem(STORAGE_KEYS.email, email);
-
-      alert('Your details have been saved for the ticket.');
-      return true;
-    }
-
-    // Prefill form from storage
-    function restoreUserDetails() {
-      const storedName = localStorage.getItem(STORAGE_KEYS.name);
-      const storedEmail = localStorage.getItem(STORAGE_KEYS.email);
-
-      if (storedName) {
-        document.getElementById('fullName').value = storedName;
-      }
-      if (storedEmail) {
-        document.getElementById('email').value = storedEmail;
-      }
-    }
-
-    // Call backend, get ticket code, show ticket + QR
+    // Create ticket after PayPal confirms payment
     async function generateAndShowTicket() {
-      const ticket = document.getElementById('ticket');
+      const ticketEl = document.getElementById('ticket');
       const ticketCodeEl = document.getElementById('ticketCode');
       const overlay = document.getElementById('overlay');
 
-      const name = (localStorage.getItem(STORAGE_KEYS.name) || '').trim();
-      const email = (localStorage.getItem(STORAGE_KEYS.email) || '').trim();
+      const name = (document.getElementById('fullName').value || "").trim();
+      const email = (document.getElementById('email').value || "").trim();
 
       if (!name || !email) {
-        alert('We could not find your name or email. Please fill in the form and save your data, then open the PayPal return link again.');
+        alert('Please enter your name and email address before paying.');
         return;
       }
 
       overlay.classList.add('show');
 
+      let response;
+      let data = null;
+
       try {
         const url = `${BACKEND_BASE_URL}/ticket-request/${encodeURIComponent(email)},${encodeURIComponent(name)},${encodeURIComponent(BACKEND_PASSWORD)}`;
+        response = await fetch(url);
 
-        const response = await fetch(url);
-
-        if (response.status === 409) {
-          overlay.classList.remove('show');
-          alert('Unfortunately, there are no tickets left. If you have already paid, please contact us at konstanz@jef-bw.de.');
-          return;
+        // Try to parse JSON, even if status is not OK
+        try {
+          data = await response.json();
+        } catch (e) {
+          data = null;
         }
+      } catch (err) {
+        console.error('Ticket generation network error:', err);
+        overlay.classList.remove('show');
+        alert('We could not reach the ticket server. Please try again or contact us at konstanz@jef-bw.de with your payment confirmation.');
+        return;
+      }
 
-        if (!response.ok) {
-          overlay.classList.remove('show');
-          alert('There was an error while creating your ticket. Please contact us at konstanz@jef-bw.de with your payment confirmation.');
-          return;
-        }
+      // Sold out
+      if (response.status === 409) {
+        overlay.classList.remove('show');
+        alert('Unfortunately, there are no tickets left. If you have already paid, please contact us at konstanz@jef-bw.de.');
+        return;
+      }
 
-        const data = await response.json();
-        const ticketCode = data.code;
+      const ticketCode = data && data.code ? String(data.code) : null;
 
-        if (!ticketCode) {
-          overlay.classList.remove('show');
-          alert('The server did not return a ticket code. Please contact us at konstanz@jef-bw.de.');
-          return;
-        }
-
-        // store + display ticket
-        saveTicketToStorage(ticketCode, name, email);
+      if (ticketCode) {
+        // Store and show the ticket code
+        saveTicketToStorage(ticketCode);
         ticketCodeEl.textContent = ticketCode;
-
         renderQrCode(ticketCode);
 
         overlay.classList.remove('show');
-        ticket.classList.add('show');
-        ticket.scrollIntoView({ behavior: 'smooth' });
+        ticketEl.classList.add('show');
+        ticketEl.scrollIntoView({ behavior: 'smooth' });
 
-        // Clean up URL (?payment=success)
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } catch (err) {
-        console.error('Ticket generation error:', err);
-        overlay.classList.remove('show');
-        alert('We could not create your ticket automatically. Please contact us at konstanz@jef-bw.de with your payment confirmation.');
+        // If backend returned an error status but still gave a code, warn but keep ticket visible
+        if (!response.ok) {
+          console.warn('Backend returned non-OK status but included ticket code:', response.status, data);
+          alert(
+            'Your ticket has been created and is valid (see code and QR on this page), ' +
+            'but there was a technical error in the background. Please consider taking a screenshot. ' +
+            'If you have questions, contact us at konstanz@jef-bw.de with your ticket code.'
+          );
+        }
+        return;
       }
+
+      // No code at all => real failure
+      overlay.classList.remove('show');
+      console.error('Ticket creation failed. Response status:', response && response.status, 'data:', data);
+      alert('There was an error while creating your ticket. Please contact us at konstanz@jef-bw.de with your payment confirmation.');
     }
 
-    function saveTicketToStorage(ticketCode, name, email) {
-      localStorage.setItem(STORAGE_KEYS.ticket, ticketCode);
-      if (name) localStorage.setItem(STORAGE_KEYS.name, name);
-      if (email) localStorage.setItem(STORAGE_KEYS.email, email);
+    function saveTicketToStorage(ticketCode) {
+      localStorage.setItem(TICKET_STORAGE_KEY, ticketCode);
     }
 
     function checkExistingTicket() {
-      const savedTicket = localStorage.getItem(STORAGE_KEYS.ticket);
+      const savedTicket = localStorage.getItem(TICKET_STORAGE_KEY);
       if (savedTicket) {
         document.getElementById('ticketCode').textContent = savedTicket;
         document.getElementById('ticket').classList.add('show');
@@ -369,15 +297,14 @@
       }
     }
 
-    // Render QR code for given ticket
     function renderQrCode(ticketCode) {
       const qrContainer = document.getElementById('qrcode');
       if (!qrContainer || typeof QRCode === 'undefined') return;
 
-      // Clear previous QR (if any)
+      // Clear previous QR code, if any
       qrContainer.innerHTML = "";
 
-      qrInstance = new QRCode(qrContainer, {
+      new QRCode(qrContainer, {
         text: ticketCode,
         width: 160,
         height: 160,
@@ -385,16 +312,36 @@
       });
     }
 
-    // PayPal Integration (unchanged except for error message text)
-    paypal.HostedButtons({
-      hostedButtonId: "SP2E3J2QVPCUJ",
+    // PayPal Buttons integration: payment itself is the trigger
+    paypal.Buttons({
+      createOrder: function (data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              currency_code: 'EUR',
+              value: '6.00'
+            }
+          }]
+        });
+      },
+
+      onApprove: function (data, actions) {
+        return actions.order.capture().then(function (details) {
+          console.log('PayPal payment captured:', details);
+          // After successful capture, create/send/show the ticket
+          generateAndShowTicket();
+        });
+      },
+
       onError: function (err) {
         console.error('PayPal Error:', err);
-        alert('There was an error with your payment. Please try again or contact us: konstanz@jef-bw.de');
+        alert('There was an error with your payment. Please try again or contact us at konstanz@jef-bw.de');
       },
+
       onCancel: function (data) {
         console.log('Payment cancelled', data);
       }
+
     }).render("#paypal-container-SP2E3J2QVPCUJ");
   </script>
 </body>
