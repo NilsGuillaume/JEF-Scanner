@@ -6,12 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
 
-  <!-- PayPal SDK (standard buttons, no hosted-buttons) -->
+  <!-- PayPal SDK -->
   <script 
-    src="https://www.paypal.com/sdk/js?client-id=BAA6Z2kU6-TesiMjcbBozmJQ2pDPYMmF4VODKR07Gn0n-tQjK8XFlfo_ENTXTOIhGLHluhWN4Br2Z0_ukQ&disable-funding=venmo&currency=EUR">
+    src="https://www.paypal.com/sdk/js?client-id=BAA6Z2kU6-TesiMjcbBozmJQ2pDPYMmF4VODKR07Gn0n-tQjK8XFlfo_ENTXTOIhGLHluhWN4Br2Z0_ukQ&components=hosted-buttons&disable-funding=venmo&currency=EUR">
   </script>
 
   <style>
+    /* Deine bestehenden Styles bleiben gleich */
     :root{
       --bg:#0b0f14; --card:#111827; --muted:#9aa4b2; --text:#e6edf3; --line:#1f2937;
       --accent:#60a5fa;
@@ -42,62 +43,28 @@
     .ticket.show{ display:block; }
     .ticket h2{ color:var(--accent); margin-top:0; }
     .ticket-code{ font-family:monospace; font-size:24px; letter-spacing:4px; background:var(--bg); padding:12px; border-radius:8px; margin:16px 0; }
-
-    /* NEW: simple styling for the form fields */
-    .field-group{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      margin-top:8px;
-    }
-    .field-label{
-      font-size:14px;
-      font-weight:500;
-    }
-    .field-input{
-      padding:10px 12px;
-      border-radius:8px;
-      border:1px solid var(--line);
-      background:color-mix(in oklab, var(--bg) 70%, var(--card));
-      color:var(--text);
-      font-size:14px;
-    }
-    .field-input::placeholder{
-      color:var(--muted);
-    }
-    .helper-text{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:4px;
-    }
-
-    /* NEW: QR code container */
-    #qrcode{
-      margin:16px auto 0;
-      width:160px;
-      height:160px;
-    }
-
     /* === Smooth green–blue background — keep this AT THE END === */
-    html, body{
-      background:
-        radial-gradient(35rem 28rem at 22% 18%, rgba(173,219,46,0.45) 0%, rgba(16,185,129,0.30) 40%, transparent 60%),
-        radial-gradient(36rem 30rem at 62% 18%, rgba(99,102,241,0.55) 0%, rgba(37,99,235,0.35) 40%, transparent 62%),
-        radial-gradient(120rem 70rem at 50% -10%, #07233d 0%, #051a30 50%, #041426 100%);
-      background-attachment: fixed;
-      background-repeat: no-repeat;
-    }
+html, body{
+  /* keep your existing typography/spacing or omit if already set elsewhere */
+  background:
+    radial-gradient(35rem 28rem at 22% 18%, rgba(173,219,46,0.45) 0%, rgba(16,185,129,0.30) 40%, transparent 60%),
+    radial-gradient(36rem 30rem at 62% 18%, rgba(99,102,241,0.55) 0%, rgba(37,99,235,0.35) 40%, transparent 62%),
+    radial-gradient(120rem 70rem at 50% -10%, #07233d 0%, #051a30 50%, #041426 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
 
-    @media (prefers-color-scheme: light){
-      html, body{
-        background:
-          radial-gradient(35rem 28rem at 22% 18%, rgba(163,230,53,0.55) 0%, rgba(34,197,94,0.35) 40%, transparent 60%),
-          radial-gradient(36rem 30rem at 62% 18%, rgba(59,130,246,0.55) 0%, rgba(99,102,241,0.35) 40%, transparent 62%),
-          linear-gradient(180deg, #eaf3ff 0%, #f5fbff 100%);
-        background-attachment: fixed;
-        background-repeat: no-repeat;
-      }
-    }
+/* Light scheme variant */
+@media (prefers-color-scheme: light){
+  html, body{
+    background:
+      radial-gradient(35rem 28rem at 22% 18%, rgba(163,230,53,0.55) 0%, rgba(34,197,94,0.35) 40%, transparent 60%),
+      radial-gradient(36rem 30rem at 62% 18%, rgba(59,130,246,0.55) 0%, rgba(99,102,241,0.35) 40%, transparent 62%),
+      linear-gradient(180deg, #eaf3ff 0%, #f5fbff 100%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+}
   </style>
 </head>
 
@@ -136,42 +103,12 @@
       <!-- Zahlung -->
       <aside class="card panel" aria-label="Zahlung">
         <h2 style="margin:0">Checkout</h2>
-        <p class="muted" style="margin-top:-6px">Please enter your details and then pay with PayPal or Debit / Credit Card. The ticket will be opened after successful payment.</p>
-
-        <!-- NEW: Name + Email inputs -->
-        <div class="field-group">
-          <label for="fullName" class="field-label">Name*</label>
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            class="field-input"
-            placeholder="Vor- und Nachname"
-            autocomplete="name"
-            required
-          />
-        </div>
-
-        <div class="field-group">
-          <label for="email" class="field-label">E-Mail-Adresse*</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            class="field-input"
-            placeholder="you@example.com"
-            autocomplete="email"
-            required
-          />
-          <p class="helper-text">
-            We use this to send you the ticket and to verify your purchase at the entrance.
-          </p>
-        </div>
-
-        <div class="divider"></div>
+        <p class="muted" style="margin-top:-6px">Pay with Paypal or Debit / Credit Card. The ticket will be opened after successful payment.</p>
 
         <!-- PayPal Button Container -->
         <div id="paypal-container-SP2E3J2QVPCUJ"></div>
+
+        <div class="divider"></div>
         
       </aside>
     </section>
@@ -183,9 +120,6 @@
       <p>Wednesday, 26. November 2026 · 22:00 — Kantine, Konstanz</p>
       
       <div class="ticket-code" id="ticketCode">SG-XXXX-XXXX-XXXX</div>
-
-      <!-- NEW: QR code container -->
-      <div id="qrcode" role="img" aria-label="QR code for your ticket"></div>
       
       <p class="muted">This ticket will be scanned upon entry. Please have it ready.</p>
       <button onclick="window.print()" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Ticket drucken</button>
@@ -195,154 +129,82 @@
   <!-- Lade-Overlay -->
   <div class="overlay" id="overlay" role="status" aria-live="polite">⏳ Ticket is being produced …</div>
 
-  <!-- QRCode library (client-side QR generation) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
   <script>
-    // === CONFIG: set your backend URL + password here ===
-    const BACKEND_BASE_URL = "https://jef-shop-backend.onrender.com";
-    const BACKEND_PASSWORD = "536742513462138247235784210742847562938572591048674267720310648";
-
-    // Use same key name as before to keep behavior consistent
-    const TICKET_STORAGE_KEY = "springGalaTicket";
-
+    // Prüfe beim Laden der Seite auf URL-Parameter
     document.addEventListener('DOMContentLoaded', function() {
-      // On load, just show existing ticket if we have one
-      checkExistingTicket();
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+      
+      if (paymentStatus === 'success') {
+        generateAndShowTicket();
+      } else {
+        // Prüfe auf gespeichertes Ticket
+        checkExistingTicket();
+      }
     });
 
-    // Create ticket after PayPal confirms payment
-    async function generateAndShowTicket() {
-      const ticketEl = document.getElementById('ticket');
-      const ticketCodeEl = document.getElementById('ticketCode');
+    function generateAndShowTicket() {
+      const ticket = document.getElementById('ticket');
+      const ticketCode = document.getElementById('ticketCode');
       const overlay = document.getElementById('overlay');
-
-      const name = (document.getElementById('fullName').value || "").trim();
-      const email = (document.getElementById('email').value || "").trim();
-
-      if (!name || !email) {
-        alert('Please enter your name and email address before paying.');
-        return;
-      }
-
+      
+      // Overlay anzeigen
       overlay.classList.add('show');
-
-      let response;
-      let data = null;
-
-      try {
-        const url = `${BACKEND_BASE_URL}/ticket-request/${encodeURIComponent(email)},${encodeURIComponent(name)},${encodeURIComponent(BACKEND_PASSWORD)}`;
-        response = await fetch(url);
-
-        // Try to parse JSON, even if status is not OK
-        try {
-          data = await response.json();
-        } catch (e) {
-          data = null;
-        }
-      } catch (err) {
-        console.error('Ticket generation network error:', err);
+      
+      setTimeout(() => {
+        // Eindeutigen Ticket-Code generieren
+        const newTicketCode = generateTicketCode();
+        ticketCode.textContent = newTicketCode;
+        
+        // Ticket im localStorage speichern
+        saveTicketToStorage(newTicketCode);
+        
+        // Overlay ausblenden und Ticket anzeigen
         overlay.classList.remove('show');
-        alert('We could not reach the ticket server. Please try again or contact us at konstanz@jef-bw.de with your payment confirmation.');
-        return;
-      }
-
-      // Sold out
-      if (response.status === 409) {
-        overlay.classList.remove('show');
-        alert('Unfortunately, there are no tickets left. If you have already paid, please contact us at konstanz@jef-bw.de.');
-        return;
-      }
-
-      const ticketCode = data && data.code ? String(data.code) : null;
-
-      if (ticketCode) {
-        // Store and show the ticket code
-        saveTicketToStorage(ticketCode);
-        ticketCodeEl.textContent = ticketCode;
-        renderQrCode(ticketCode);
-
-        overlay.classList.remove('show');
-        ticketEl.classList.add('show');
-        ticketEl.scrollIntoView({ behavior: 'smooth' });
-
-        // If backend returned an error status but still gave a code, warn but keep ticket visible
-        if (!response.ok) {
-          console.warn('Backend returned non-OK status but included ticket code:', response.status, data);
-          alert(
-            'Your ticket has been created and is valid (see code and QR on this page), ' +
-            'but there was a technical error in the background. Please consider taking a screenshot. ' +
-            'If you have questions, contact us at konstanz@jef-bw.de with your ticket code.'
-          );
-        }
-        return;
-      }
-
-      // No code at all => real failure
-      overlay.classList.remove('show');
-      console.error('Ticket creation failed. Response status:', response && response.status, 'data:', data);
-      alert('There was an error while creating your ticket. Please contact us at konstanz@jef-bw.de with your payment confirmation.');
+        ticket.classList.add('show');
+        ticket.scrollIntoView({ behavior: 'smooth' });
+        
+        // URL bereinigen (optional)
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 2000);
     }
 
     function saveTicketToStorage(ticketCode) {
-      localStorage.setItem(TICKET_STORAGE_KEY, ticketCode);
+      localStorage.setItem('springGalaTicket', ticketCode);
+      sessionStorage.setItem('currentTicket', ticketCode);
     }
 
     function checkExistingTicket() {
-      const savedTicket = localStorage.getItem(TICKET_STORAGE_KEY);
+      const savedTicket = localStorage.getItem('springGalaTicket');
       if (savedTicket) {
         document.getElementById('ticketCode').textContent = savedTicket;
         document.getElementById('ticket').classList.add('show');
-        renderQrCode(savedTicket);
       }
     }
 
-    function renderQrCode(ticketCode) {
-      const qrContainer = document.getElementById('qrcode');
-      if (!qrContainer || typeof QRCode === 'undefined') return;
-
-      // Clear previous QR code, if any
-      qrContainer.innerHTML = "";
-
-      new QRCode(qrContainer, {
-        text: ticketCode,
-        width: 160,
-        height: 160,
-        correctLevel: QRCode.CorrectLevel.M
-      });
+    function generateTicketCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+      let result = 'SG-';
+      for (let i = 0; i < 12; i++) {
+        if (i > 0 && i % 4 === 0) result += '-';
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Zeitstempel für mehr Eindeutigkeit
+      const timestamp = Date.now().toString().slice(-4);
+      return result + '-' + timestamp;
     }
 
-    // PayPal Buttons integration: payment itself is the trigger
-    paypal.Buttons({
-      createOrder: function (data, actions) {
-        return actions.order.create({
-          purchase_units: [{
-            amount: {
-              currency_code: 'EUR',
-              value: '6.00'
-            }
-          }]
-        });
-      },
-
-      onApprove: function (data, actions) {
-        return actions.order.capture().then(function (details) {
-          console.log('PayPal payment captured:', details);
-          // After successful capture, create/send/show the ticket
-          generateAndShowTicket();
-        });
-      },
-
+    // PayPal Integration
+    paypal.HostedButtons({
+      hostedButtonId: "SP2E3J2QVPCUJ",
       onError: function (err) {
-        console.error('PayPal Error object:', err);
-        try {
-          alert('PayPal error: ' + (err && err.message ? err.message : JSON.stringify(err)));
-        } catch (e) {
-          alert('A PayPal error occurred. Please check the browser console (F12 → Console).');
-        }
+        console.error('PayPal Error:', err);
+        alert('There was an error with your payment. Please try again or contact us under: konstanz@jef-bw.de .');
       },
-
-
+      onCancel: function (data) {
+        console.log('Payment Error');
+      }
     }).render("#paypal-container-SP2E3J2QVPCUJ");
   </script>
 </body>
