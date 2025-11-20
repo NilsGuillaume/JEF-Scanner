@@ -334,13 +334,14 @@
       },
 
       onError: function (err) {
-        console.error('PayPal Error:', err);
-        alert('There was an error with your payment. Please try again or contact us at konstanz@jef-bw.de');
+        console.error('PayPal Error object:', err);
+        try {
+          alert('PayPal error: ' + (err && err.message ? err.message : JSON.stringify(err)));
+        } catch (e) {
+          alert('A PayPal error occurred. Please check the browser console (F12 → Console).');
+        }
       },
 
-      onCancel: function (data) {
-        console.log('Payment cancelled', data);
-      }
 
     }).render("#paypal-container-SP2E3J2QVPCUJ");
   </script>
